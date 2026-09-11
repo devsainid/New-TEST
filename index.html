@@ -8,53 +8,61 @@
         * { box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
         body { margin: 0; padding: 0; background-color: #f1f5f9; color: #334155; }
         .container { max-width: 600px; margin: 0 auto; padding: 15px; }
-        .admin-container { max-width: 900px; margin: 0 auto; padding: 15px; } /* Wider for HQ */
+        .admin-container { max-width: 900px; margin: 0 auto; padding: 15px; } 
         
         .card { background: white; padding: 25px; border-radius: 16px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); margin-bottom: 20px; border: 1px solid #e2e8f0; }
         .btn { width: 100%; padding: 14px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; transition: all 0.2s; }
-        .btn-primary { background: #2563eb; color: white; box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.4); }
-        .btn-primary:active { transform: scale(0.98); }
+        .btn-primary { background: #2563eb; color: white; }
+        .btn-success { background: #16a34a; color: white; }
         .btn-secondary { background: #64748b; color: white; padding: 8px 15px; border-radius: 8px; font-size: 14px; }
         
         .input-group { margin-bottom: 20px; }
         .input-group label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px; color: #475569; }
-        input { width: 100%; padding: 12px 15px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 15px; background: #f8fafc; transition: border 0.3s; }
+        input { width: 100%; padding: 12px 15px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 15px; background: #f8fafc; }
         input:focus { border-color: #2563eb; outline: none; background: white; }
         
-        .header { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: white; padding: 20px; display: flex; justify-content: space-between; align-items: center; border-radius: 16px 16px 0 0; margin-bottom: -10px; z-index: 10; position: relative; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .header { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: white; padding: 20px; display: flex; justify-content: space-between; align-items: center; border-radius: 16px 16px 0 0; margin-bottom: -10px; z-index: 10; position: relative; }
         
-        .camera-btn { display: block; width: 100%; background: #eff6ff; color: #2563eb; border: 2px dashed #3b82f6; padding: 20px; text-align: center; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; transition: background 0.3s; }
+        .camera-btn { display: block; width: 100%; background: #eff6ff; color: #2563eb; border: 2px dashed #3b82f6; padding: 20px; text-align: center; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; }
         .camera-btn i { font-size: 24px; display: block; margin-bottom: 5px; }
         input[type="file"] { display: none; }
 
         .history-item { padding: 15px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
-        .history-item:last-child { border-bottom: none; }
         .badge-pos { background: #fee2e2; color: #dc2626; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
         .badge-neg { background: #dcfce3; color: #16a34a; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
         .status-dot { height: 10px; width: 10px; background-color: #16a34a; border-radius: 50%; display: inline-block; margin-right: 5px; }
         
-        #update-screen, #officer-section, #admin-section { display: none; }
+        #officer-section, #admin-section, #register-form { display: none; }
     </style>
 </head>
 <body>
 
     <div id="main-wrapper" class="container">
         
-        <!-- 1. LOGIN SCREEN -->
-        <div id="login-section" class="card" style="margin-top: 10vh; text-align: center; padding: 40px 25px;">
+        <!-- 1. AUTHENTICATION SCREENS -->
+        <div id="auth-section" class="card" style="margin-top: 10vh; text-align: center; padding: 40px 25px;">
             <div style="background: #e0e7ff; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px auto;">
                 <span style="font-size: 30px;">🛡️</span>
             </div>
             <h2 style="color: #0f172a; margin-bottom: 5px;">FieldTest Portal</h2>
             <p style="color: #64748b; margin-top: 0; margin-bottom: 25px; font-size: 14px;">Govt. Authorized Access Only</p>
             
-            <div class="input-group">
-                <input type="text" id="userid" placeholder="Officer ID (e.g. OFF001)">
+            <!-- Login Form -->
+            <div id="login-form">
+                <div class="input-group"><input type="text" id="userid" placeholder="Officer ID / Admin ID"></div>
+                <div class="input-group"><input type="password" id="password" placeholder="Password"></div>
+                <button class="btn btn-primary" onclick="login()">Secure Login</button>
+                <p style="margin-top: 20px; font-size: 14px; color: #64748b;">New Officer? <a href="#" onclick="toggleAuth()" style="color: #2563eb; font-weight: bold;">Authenticate Here</a></p>
             </div>
-            <div class="input-group">
-                <input type="password" id="password" placeholder="Password">
+
+            <!-- Register Form (Hidden by default) -->
+            <div id="register-form">
+                <div class="input-group"><input type="text" id="reg-userid" placeholder="Create Officer ID (e.g. OFF002)"></div>
+                <div class="input-group"><input type="password" id="reg-password" placeholder="Create Password"></div>
+                <div class="input-group"><input type="password" id="reg-secret" placeholder="Enter HQ Secret Key"></div>
+                <button class="btn btn-success" onclick="registerOfficer()">Verify & Register</button>
+                <p style="margin-top: 20px; font-size: 14px; color: #64748b;">Already have access? <a href="#" onclick="toggleAuth()" style="color: #2563eb; font-weight: bold;">Login</a></p>
             </div>
-            <button class="btn btn-primary" onclick="login()">Secure Login</button>
         </div>
 
         <!-- 2. OFFICER APP SCREEN -->
@@ -96,10 +104,9 @@
                 <div id="history-list"><p style="color: #94a3b8; font-size: 14px; text-align: center;">Fetching history...</p></div>
             </div>
         </div>
-
     </div> <!-- End Officer Wrapper -->
 
-    <!-- 3. HQ ADMIN DASHBOARD (Wider for desktop view) -->
+    <!-- 3. HQ ADMIN DASHBOARD -->
     <div id="admin-section" class="admin-container">
         <div class="header" style="background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%);">
             <div>
@@ -110,7 +117,6 @@
         </div>
         <div class="card" style="border-radius: 0 0 16px 16px; overflow-x: auto; padding-top: 30px;">
             
-            <!-- NEW: SEARCH BAR & REFRESH -->
             <div style="display: flex; gap: 10px; margin-bottom: 20px;">
                 <input type="text" id="search-input" placeholder="🔍 Search by Test ID or Kit Ref..." onkeyup="searchRecords()" style="margin-bottom: 0;">
                 <button class="btn btn-primary" onclick="fetchRecords()" style="width: auto; padding: 12px 20px; margin-top: 0;">🔄 Refresh</button>
@@ -142,15 +148,15 @@
 
         // INIT & ROUTING
         function initApp() {
-            document.getElementById('login-section').style.display = 'none';
+            document.getElementById('auth-section').style.display = 'none';
             document.getElementById('officer-section').style.display = 'none';
             document.getElementById('admin-section').style.display = 'none';
-            document.getElementById('main-wrapper').className = "container"; // Reset width
+            document.getElementById('main-wrapper').className = "container"; 
 
             if (token) {
                 if (role === 'hq_admin') {
                     document.getElementById('admin-section').style.display = 'block';
-                    document.getElementById('main-wrapper').className = "admin-container"; // Make wide
+                    document.getElementById('main-wrapper').className = "admin-container";
                     fetchRecords();
                 } else {
                     document.getElementById('officer-section').style.display = 'block';
@@ -159,10 +165,42 @@
                     fetchOfficerHistory();
                     updateSilentStatusUI();
                 }
-            } else { document.getElementById('login-section').style.display = 'block'; }
+            } else { document.getElementById('auth-section').style.display = 'block'; }
         }
 
-        // LOGIN / LOGOUT
+        function toggleAuth() {
+            const loginF = document.getElementById('login-form');
+            const regF = document.getElementById('register-form');
+            if(loginF.style.display === 'none') {
+                loginF.style.display = 'block'; regF.style.display = 'none';
+            } else {
+                loginF.style.display = 'none'; regF.style.display = 'block';
+            }
+        }
+
+        // NEW: SECURE REGISTRATION
+        async function registerOfficer() {
+            const uid = document.getElementById('reg-userid').value;
+            const pass = document.getElementById('reg-password').value;
+            const secret = document.getElementById('reg-secret').value;
+            
+            if(!uid || !pass || !secret) { alert("Please fill all fields!"); return; }
+
+            try {
+                const res = await fetch(`${API_URL}/auth/register`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: uid, password: pass, secret_key: secret })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    alert("✅ " + data.message);
+                    document.getElementById('userid').value = uid;
+                    document.getElementById('password').value = pass;
+                    toggleAuth(); // Flip back to login
+                } else { alert("❌ Error: " + data.detail); }
+            } catch(e) { alert("Network Error."); }
+        }
+
         async function login() {
             const uid = document.getElementById('userid').value;
             const pass = document.getElementById('password').value;
@@ -300,7 +338,7 @@
         window.addEventListener('online', () => { chupchapSync(); updateSilentStatusUI(); });
         window.addEventListener('offline', updateSilentStatusUI);
 
-        // HQ ADMIN LOGIC (WITH SEARCH & HASH)
+        // HQ ADMIN LOGIC
         async function fetchRecords() {
             try {
                 const res = await fetch(`${API_URL}/api/records`);
@@ -308,7 +346,6 @@
                 const tbody = document.getElementById('records-body');
                 tbody.innerHTML = "";
                 data.forEach(r => {
-                    // Truncate hash for display if it exists
                     const displayHash = r.image_hash && r.image_hash !== "PENDING" ? 
                                       `<span style="font-family:monospace; color:#2563eb; background:#eff6ff; padding:2px 6px; border-radius:4px;" title="${r.image_hash}">✔️ Valid: ${r.image_hash.substring(0,8)}...</span>` 
                                       : `<span style="color:#ea580c;">Offline Synced</span>`;
@@ -326,7 +363,6 @@
             } catch(e) {}
         }
 
-        // NEW: Search Filter Logic
         function searchRecords() {
             const filter = document.getElementById('search-input').value.toUpperCase();
             const rows = document.getElementsByClassName('record-row');
