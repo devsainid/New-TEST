@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 import jwt
 
 # ==========================================
-# AI / ML SERVICES (Merged into 1 file)
+# AI / ML SERVICES
 # ==========================================
 class ImagePipeline:
     def __init__(self, image_bytes: bytes, filename: str):
@@ -40,6 +40,14 @@ engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
+# NEW: Users Table for Secure Registration
+class User(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String(50), unique=True, index=True)
+    password = Column(String(255))
+    role = Column(String(20))
+
 class TestRecord(Base):
     __tablename__ = "test_records"
     id = Column(Integer, primary_key=True, index=True)
@@ -61,9 +69,6 @@ class AuditLog(Base):
 
 Base.metadata.create_all(bind=engine)
 
-# ==========================================
-# FASTAPI APP & CORS
-# ==========================================
 app = FastAPI(title="SIH 2026 FieldTest API")
 
 app.add_middleware(
@@ -86,21 +91,36 @@ def log_action(db: Session, user_id: str, action: str):
     db.add(new_log)
     db.commit()
 
-# ==========================================
-# OTA UPDATES & SECURITY 
-# ==========================================
 @app.get("/app-status")
 def get_app_status():
-    return {
-        "success": True,
-        "latest_version": "1.0.0",
-        "force_update": False,
-        "download_url": "https://fieldtest-sih2026.vercel.app" 
-    }
+    return {"success": True, "latest_version": "1.0.0", "force_update": False}
 
 # ==========================================
-# AUTHENTICATION
+# AUTHENTICATION & SECURE REGISTRATION
 # ==========================================
+class RegisterData(BaseModel):
+    username: str
+    password: str
+    secret_key: str
+
+@app.post("/auth/register")
+def register(data: RegisterData, db: Session = Depends(get_db)):
+    # 1. VERIFY HQ SECRET KEY
+    if data.secret_key != "SIH-SECURE-2026":
+        raise HTTPException(status_code=403, detail="Unauthorized: Invalid HQ Secret Key")
+    
+    # 2. CHECK IF USER ALREADY EXISTS
+    existing = db.query(User).filter(User.username == data.username).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Officer ID already registered")
+    
+    # 3. SAVE TO DB
+    new_user = User(username=data.username, password=data.password, role="field_officer")
+    db.add(new_user)
+    db.commit()
+    log_action(db, data.username, "New Officer Registered")
+    return {"success": True, "message": "Officer Authenticated & Registered Successfully"}
+
 class LoginData(BaseModel):
     username: str
     password: str
@@ -108,32 +128,33 @@ class LoginData(BaseModel):
 @app.post("/auth/login")
 def login(data: LoginData, db: Session = Depends(get_db)):
     role = None
-    if data.username.startswith("OFF") and data.password == "1234":
+    
+    # First check database for registered users
+    user = db.query(User).filter(User.username == data.username, User.password == data.password).first()
+    
+    if user:
+        role = user.role
+    # Fallback to default hardcoded users (For Prototype / Admin)
+    elif data.username == "OFF001" and data.password == "1234":
         role = "field_officer"
-    elif data.username.startswith("ADMIN") and data.password == "hq1234":
+    elif data.username == "ADMIN01" and data.password == "hq1234":
         role = "hq_admin"
     else:
         log_action(db, data.username, "Failed login attempt")
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
-    payload = {
-        "sub": data.username,
-        "role": role,
-        "exp": datetime.now(timezone.utc) + timedelta(hours=24)
-    }
+    payload = {"sub": data.username, "role": role, "exp": datetime.now(timezone.utc) + timedelta(hours=24)}
     token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
     log_action(db, data.username, f"Logged in as {role}")
-    return {"access_token": token, "token_type": "bearer", "role": role}
+    return {"access_token": token, "role": role}
 
 # ==========================================
 # CORE API (UPLOAD & SYNC)
 # ==========================================
 @app.post("/api/upload")
 async def upload_test(
-    officer_id: str = Form(...),
-    kit_reference: str = Form(...),
-    gps_location: str = Form(...),
-    file: UploadFile = File(...),
+    officer_id: str = Form(...), kit_reference: str = Form(...),
+    gps_location: str = Form(...), file: UploadFile = File(...),
     db: Session = Depends(get_db)
 ):
     image_bytes = await file.read()
@@ -141,8 +162,7 @@ async def upload_test(
 
     pipeline = ImagePipeline(image_bytes, file.filename)
     pipeline.run_preprocessing_workflow()
-    classifier = MockClassifier()
-    ml_result = classifier.classify(image_bytes, file.filename)
+    ml_result = MockClassifier().classify(image_bytes, file.filename)
 
     new_record = TestRecord(
         officer_id=officer_id, kit_reference=kit_reference, gps_location=gps_location,
@@ -151,9 +171,8 @@ async def upload_test(
     db.add(new_record)
     db.commit()
     db.refresh(new_record)
-    log_action(db, officer_id, f"Uploaded test for {kit_reference}")
-    
-    return {"success": True, "record_id": new_record.id, "result": new_record.result, "hash": new_record.image_hash}
+    log_action(db, officer_id, f"Uploaded test {kit_reference}")
+    return {"success": True, "result": new_record.result}
 
 class OfflineTest(BaseModel):
     officer_id: str
@@ -166,21 +185,15 @@ class SyncPayload(BaseModel):
 
 @app.post("/api/sync")
 def sync_offline_records(payload: SyncPayload, db: Session = Depends(get_db)):
-    synced_ids = []
     for test in payload.records:
         new_record = TestRecord(
             officer_id=test.officer_id, kit_reference=test.kit_reference, gps_location=test.gps_location,
             result="PENDING_SYNC_ANALYSIS", confidence="N/A", image_hash="PENDING", sync_status="SYNCED_FROM_OFFLINE"
         )
         db.add(new_record)
-        db.commit()
-        db.refresh(new_record)
-        synced_ids.append(new_record.id)
-    return {"success": True, "synced_count": len(synced_ids)}
+    db.commit()
+    return {"success": True}
 
-# ==========================================
-# HQ ADMIN DASHBOARD
-# ==========================================
 @app.get("/api/records")
 def get_records(db: Session = Depends(get_db)):
     return db.query(TestRecord).order_by(TestRecord.id.desc()).limit(100).all()
