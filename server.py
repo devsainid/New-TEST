@@ -24,7 +24,7 @@ class ImagePipeline:
 
 class MockClassifier:
     def classify(self, image_bytes: bytes, filename: str) -> dict:
-        outcomes = ["POSITIVE INDICATION", "NEGATIVE INDICATION", "INCONCLUSIVE"]
+        outcomes = ["Positive", "Negative", "Inconclusive"]
         result = random.choices(outcomes, weights=[0.4, 0.4, 0.2])[0]
         return {"result": result, "confidence": "95.5%", "model_type": "Simulated"}
 
@@ -40,7 +40,6 @@ engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
-# NEW: Users Table for Secure Registration
 class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, index=True)
@@ -48,14 +47,17 @@ class User(Base):
     password = Column(String(255))
     role = Column(String(20))
 
+# NAYI TABLE (V2) IMAGE WALE FORMAT KE LIYE
 class TestRecord(Base):
-    __tablename__ = "test_records"
+    __tablename__ = "test_records_v2"
     id = Column(Integer, primary_key=True, index=True)
-    officer_id = Column(String(50), index=True)
-    kit_reference = Column(String(50))
-    gps_location = Column(String(100))
-    timestamp = Column(DateTime, default=lambda: datetime.now(timezone.utc))
-    result = Column(String(50))
+    officer_id = Column(String(50), index=True)       # Analyst
+    sample_id = Column(String(50))                    # Sample ID (e.g. A-12)
+    test_type = Column(String(50))                    # Test Type (e.g. NIK)
+    location_name = Column(String(100))               # Location (e.g. Site - Warehouse)
+    gps_location = Column(String(100))                # Digital GPS Backup
+    timestamp = Column(DateTime, default=lambda: datetime.now(timezone.utc)) # Date & Time
+    result = Column(String(50))                       # Result (Positive)
     confidence = Column(String(20))
     image_hash = Column(String(64))
     sync_status = Column(String(20), default="ONLINE")
@@ -70,25 +72,15 @@ class AuditLog(Base):
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="SIH 2026 FieldTest API")
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"], 
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
 def get_db():
     db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+    try: yield db
+    finally: db.close()
 
 def log_action(db: Session, user_id: str, action: str):
-    new_log = AuditLog(user_id=user_id, action=action)
-    db.add(new_log)
+    db.add(AuditLog(user_id=user_id, action=action))
     db.commit()
 
 @app.get("/app-status")
@@ -96,7 +88,7 @@ def get_app_status():
     return {"success": True, "latest_version": "1.0.0", "force_update": False}
 
 # ==========================================
-# AUTHENTICATION & SECURE REGISTRATION
+# AUTHENTICATION
 # ==========================================
 class RegisterData(BaseModel):
     username: str
@@ -105,16 +97,11 @@ class RegisterData(BaseModel):
 
 @app.post("/auth/register")
 def register(data: RegisterData, db: Session = Depends(get_db)):
-    # 1. VERIFY HQ SECRET KEY
     if data.secret_key != "SIH-SECURE-2026":
         raise HTTPException(status_code=403, detail="Unauthorized: Invalid HQ Secret Key")
-    
-    # 2. CHECK IF USER ALREADY EXISTS
-    existing = db.query(User).filter(User.username == data.username).first()
-    if existing:
+    if db.query(User).filter(User.username == data.username).first():
         raise HTTPException(status_code=400, detail="Officer ID already registered")
     
-    # 3. SAVE TO DB
     new_user = User(username=data.username, password=data.password, role="field_officer")
     db.add(new_user)
     db.commit()
@@ -128,17 +115,10 @@ class LoginData(BaseModel):
 @app.post("/auth/login")
 def login(data: LoginData, db: Session = Depends(get_db)):
     role = None
-    
-    # First check database for registered users
     user = db.query(User).filter(User.username == data.username, User.password == data.password).first()
-    
-    if user:
-        role = user.role
-    # Fallback to default hardcoded users (For Prototype / Admin)
-    elif data.username == "OFF001" and data.password == "1234":
-        role = "field_officer"
-    elif data.username == "ADMIN01" and data.password == "hq1234":
-        role = "hq_admin"
+    if user: role = user.role
+    elif data.username == "OFF001" and data.password == "1234": role = "field_officer"
+    elif data.username == "ADMIN01" and data.password == "hq1234": role = "hq_admin"
     else:
         log_action(db, data.username, "Failed login attempt")
         raise HTTPException(status_code=401, detail="Invalid credentials")
@@ -149,34 +129,39 @@ def login(data: LoginData, db: Session = Depends(get_db)):
     return {"access_token": token, "role": role}
 
 # ==========================================
-# CORE API (UPLOAD & SYNC)
+# CORE API (UPLOAD & SYNC FORMATTED TO IMAGE)
 # ==========================================
 @app.post("/api/upload")
 async def upload_test(
-    officer_id: str = Form(...), kit_reference: str = Form(...),
-    gps_location: str = Form(...), file: UploadFile = File(...),
+    officer_id: str = Form(...), 
+    sample_id: str = Form(...),
+    test_type: str = Form(...),
+    location_name: str = Form(...),
+    gps_location: str = Form(...), 
+    file: UploadFile = File(...),
     db: Session = Depends(get_db)
 ):
     image_bytes = await file.read()
     image_hash = hashlib.sha256(image_bytes).hexdigest()
 
-    pipeline = ImagePipeline(image_bytes, file.filename)
-    pipeline.run_preprocessing_workflow()
+    ImagePipeline(image_bytes, file.filename).run_preprocessing_workflow()
     ml_result = MockClassifier().classify(image_bytes, file.filename)
 
     new_record = TestRecord(
-        officer_id=officer_id, kit_reference=kit_reference, gps_location=gps_location,
+        officer_id=officer_id, sample_id=sample_id, test_type=test_type,
+        location_name=location_name, gps_location=gps_location,
         result=ml_result["result"], confidence=ml_result["confidence"], image_hash=image_hash
     )
     db.add(new_record)
     db.commit()
     db.refresh(new_record)
-    log_action(db, officer_id, f"Uploaded test {kit_reference}")
     return {"success": True, "result": new_record.result}
 
 class OfflineTest(BaseModel):
     officer_id: str
-    kit_reference: str
+    sample_id: str
+    test_type: str
+    location_name: str
     gps_location: str
     timestamp: str
 
@@ -187,7 +172,8 @@ class SyncPayload(BaseModel):
 def sync_offline_records(payload: SyncPayload, db: Session = Depends(get_db)):
     for test in payload.records:
         new_record = TestRecord(
-            officer_id=test.officer_id, kit_reference=test.kit_reference, gps_location=test.gps_location,
+            officer_id=test.officer_id, sample_id=test.sample_id, test_type=test.test_type,
+            location_name=test.location_name, gps_location=test.gps_location,
             result="PENDING_SYNC_ANALYSIS", confidence="N/A", image_hash="PENDING", sync_status="SYNCED_FROM_OFFLINE"
         )
         db.add(new_record)
