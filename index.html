@@ -33,9 +33,34 @@
         .status-dot { height: 10px; width: 10px; background-color: #16a34a; border-radius: 50%; display: inline-block; margin-right: 5px; }
         
         #officer-section, #admin-section, #register-form { display: none; }
+
+        /* NAYA CSS: NOTEBOOK MODAL KE LIYE */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.8); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
+        .notebook-card { background: #fff; width: 90%; max-width: 500px; border-radius: 8px; padding: 30px; position: relative; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); background-image: repeating-linear-gradient(white, white 31px, #e5e7eb 31px, #e5e7eb 32px); line-height: 32px; font-family: 'Courier New', Courier, monospace; font-size: 16px; color: #1e293b; }
+        .notebook-card h3 { font-family: 'Segoe UI', sans-serif; margin-top: 0; background: white; padding-bottom: 10px; border-bottom: 2px solid #2563eb; color: #1e3a8a; }
+        .close-btn { position: absolute; top: 15px; right: 20px; background: none; border: none; font-size: 24px; cursor: pointer; color: #64748b; font-family: sans-serif; }
+        .close-btn:hover { color: #dc2626; }
+        .notebook-row { display: flex; justify-content: space-between; border-bottom: 1px dashed #cbd5e1; }
+        .notebook-label { font-weight: bold; color: #475569; }
+        .notebook-value { color: #0f172a; font-weight: bold; }
     </style>
 </head>
 <body>
+
+    <!-- NAYA: NOTEBOOK STYLE REPORT MODAL -->
+    <div id="report-modal" class="modal-overlay">
+        <div class="notebook-card">
+            <button class="close-btn" onclick="closeModal()">✖</button>
+            <h3>📄 Digital Evidence Report</h3>
+            <div id="modal-content">
+                <!-- Data Javascript se yahan aayega -->
+            </div>
+            <div style="margin-top: 20px; background: white; line-height: 1.5; font-family: 'Segoe UI', sans-serif;">
+                <p style="font-size: 12px; color: #64748b; margin-bottom: 0;"><strong>Digital Integrity Hash (SHA-256):</strong></p>
+                <p id="modal-hash" style="font-size: 11px; color: #2563eb; word-break: break-all; margin-top: 2px; background: #eff6ff; padding: 5px; border-radius: 4px;"></p>
+            </div>
+        </div>
+    </div>
 
     <div id="main-wrapper" class="container">
         <!-- AUTHENTICATION SCREENS -->
@@ -62,7 +87,7 @@
             </div>
         </div>
 
-        <!-- OFFICER APP SCREEN (UPDATED FIELDS) -->
+        <!-- OFFICER APP SCREEN -->
         <div id="officer-section">
             <div class="header">
                 <div>
@@ -114,7 +139,7 @@
         </div>
     </div>
 
-    <!-- HQ ADMIN DASHBOARD (MATCHING THE IMAGE) -->
+    <!-- HQ ADMIN DASHBOARD -->
     <div id="admin-section" class="admin-container">
         <div class="header" style="background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%);">
             <div>
@@ -130,11 +155,10 @@
                 <button class="btn btn-primary" onclick="fetchRecords()" style="width: auto; padding: 12px 20px; margin-top: 0;">🔄 Refresh Data</button>
             </div>
 
-            <!-- TABLE HEADERS EXACTLY LIKE THE IMAGE -->
             <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px;">
                 <thead>
                     <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0; color: #0f172a;">
-                        <th style="padding: 12px;">Sample ID</th>
+                        <th style="padding: 12px;">Sample ID (Click to View)</th>
                         <th style="padding: 12px;">Location</th>
                         <th style="padding: 12px;">Test Type</th>
                         <th style="padding: 12px;">Result</th>
@@ -155,6 +179,9 @@
         let role = localStorage.getItem("role");
         let offlineQueue = JSON.parse(localStorage.getItem('offline_vault')) || [];
         let secretLocation = "Unknown GPS";
+        
+        // NAYA: Global variable taaki Modal mein data dikha sakein
+        let allRecordsData = [];
 
         function initApp() {
             document.getElementById('auth-section').style.display = 'none';
@@ -349,23 +376,29 @@
         window.addEventListener('online', () => { chupchapSync(); updateSilentStatusUI(); });
         window.addEventListener('offline', updateSilentStatusUI);
 
-        // HQ ADMIN LOGIC - ALIGNED WITH THE NOTEBOOK IMAGE
+
+        // ==========================================
+        // HQ ADMIN LOGIC & NOTEBOOK MODAL
+        // ==========================================
         async function fetchRecords() {
             try {
                 const res = await fetch(`${API_URL}/api/records`);
-                const data = await res.json();
+                allRecordsData = await res.json(); // Data save kar liya Modal ke liye
+                
                 const tbody = document.getElementById('records-body');
                 tbody.innerHTML = "";
-                data.forEach(r => {
+                allRecordsData.forEach(r => {
                     const displayHash = r.image_hash && r.image_hash !== "PENDING" ? 
                                       `<span style="font-family:monospace; color:#16a34a; background:#dcfce3; padding:2px 6px; border-radius:4px;" title="${r.image_hash}">✔️ ${r.image_hash.substring(0,8)}...</span>` 
                                       : `<span style="color:#ea580c;">Offline Synced</span>`;
                     
                     const badgeClass = r.result.includes("Positive") ? "badge-pos" : "badge-neg";
 
-                    // FORMATTED EXACTLY LIKE THE IMAGE
+                    // Sample ID ab clickable (Blue Link) ban gaya hai
                     tbody.innerHTML += `<tr class="record-row" style="border-bottom: 1px solid #e2e8f0;">
-                        <td style="padding: 12px; font-weight:bold; color:#1e3a8a;">${r.sample_id}</td>
+                        <td style="padding: 12px; font-weight:bold;">
+                            <a href="#" onclick="openReport(${r.id})" style="color:#2563eb; text-decoration:underline;">${r.sample_id}</a>
+                        </td>
                         <td style="padding: 12px;">${r.location_name}<br><small style="color:#94a3b8; font-size:10px;">${r.gps_location}</small></td>
                         <td style="padding: 12px;">${r.test_type}</td>
                         <td style="padding: 12px;"><span class="${badgeClass}">${r.result}</span></td>
@@ -377,10 +410,35 @@
             } catch(e) {}
         }
 
+        // NAYA FUNCTION: Notebook Jaisa Modal Kholne ke liye
+        function openReport(recordId) {
+            const record = allRecordsData.find(r => r.id === recordId);
+            if (!record) return;
+
+            let resultColor = record.result.includes("Positive") ? "#dc2626" : "#16a34a"; // Red for pos, Green for neg
+
+            const contentHtml = `
+                <div class="notebook-row"><span class="notebook-label">Sample ID:</span> <span class="notebook-value" style="color:#1e3a8a;">${record.sample_id}</span></div>
+                <div class="notebook-row"><span class="notebook-label">Location:</span> <span class="notebook-value">${record.location_name}</span></div>
+                <div class="notebook-row"><span class="notebook-label">Test Type:</span> <span class="notebook-value">${record.test_type}</span></div>
+                <div class="notebook-row"><span class="notebook-label">Result:</span> <span class="notebook-value" style="color:${resultColor}; text-decoration:underline;">${record.result}</span></div>
+                <div class="notebook-row"><span class="notebook-label">Date & Time:</span> <span class="notebook-value">${new Date(record.timestamp).toLocaleString()}</span></div>
+                <div class="notebook-row" style="border-bottom:none;"><span class="notebook-label">Analyst:</span> <span class="notebook-value" style="font-style:italic;">${record.officer_id}</span></div>
+            `;
+            
+            document.getElementById('modal-content').innerHTML = contentHtml;
+            document.getElementById('modal-hash').innerText = record.image_hash;
+            document.getElementById('report-modal').style.display = 'flex';
+        }
+
+        // Modal Band Karne ka function
+        function closeModal() {
+            document.getElementById('report-modal').style.display = 'none';
+        }
+
         function searchRecords() {
             const filter = document.getElementById('search-input').value.toUpperCase();
             const rows = document.getElementsByClassName('record-row');
-            
             for (let i = 0; i < rows.length; i++) {
                 const tdSample = rows[i].getElementsByTagName("td")[0];
                 const tdLoc = rows[i].getElementsByTagName("td")[1];
@@ -391,9 +449,7 @@
                     const tA = tdAnalyst.textContent || tdAnalyst.innerText;
                     if (tS.toUpperCase().indexOf(filter) > -1 || tL.toUpperCase().indexOf(filter) > -1 || tA.toUpperCase().indexOf(filter) > -1) {
                         rows[i].style.display = "";
-                    } else {
-                        rows[i].style.display = "none";
-                    }
+                    } else { rows[i].style.display = "none"; }
                 }       
             }
         }
