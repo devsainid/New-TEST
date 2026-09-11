@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FieldTest SIH 2026</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { margin: 0; padding: 0; background-color: #f1f5f9; color: #334155; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        
+        /* General Classes */
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; }
+        .btn-primary { background: #2563eb; color: white; }
+        .btn-danger { background: #ef4444; color: white; }
+        .btn-secondary { background: #64748b; color: white; width: auto; padding: 8px 15px; }
+        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #cbd5e1; border-radius: 6px; }
+        
+        /* Headers */
+        .header { background: #0f172a; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-radius: 12px 12px 0 0; }
+        
+        /* Data Table (Admin) */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0; font-size: 14px; }
+        th { background-color: #f8fafc; }
+        
+        /* Screens */
+        #update-screen, #officer-section, #admin-section { display: none; }
+        #update-screen { position: fixed; top:0; left:0; width:100%; height:100vh; background:#0f172a; color:white; flex-direction:column; justify-content:center; align-items:center; z-index: 1000; }
+    </style>
+</head>
+<body>
+
+    <!-- FORCE UPDATE SCREEN -->
+    <div id="update-screen">
+        <h1 style="color:#ef4444;">⚠️ Update Required</h1>
+        <p id="update-msg">Critical security update required.</p>
+        <button id="update-btn" class="btn btn-primary" style="width: auto;">Update Now</button>
+    </div>
+
+    <div class="container">
+        <!-- 1. LOGIN SCREEN -->
+        <div id="login-section" class="card" style="margin-top: 50px; text-align: center;">
+            <h2 style="color: #0f172a; margin-bottom: 5px;">FieldTest Portal</h2>
+            <p style="color: #64748b; margin-top: 0;">Officer (OFF001) or Admin (ADMIN01)</p>
+            <input type="text" id="userid" placeholder="User ID">
+            <input type="password" id="password" placeholder="Password">
+            <button class="btn btn-primary" onclick="login()">Secure Login</button>
+        </div>
+
+        <!-- 2. OFFICER APP SCREEN -->
+        <div id="officer-section">
+            <div class="header">
+                <div><h3 style="margin: 0;">Field App</h3><small id="officer-id-display"></small></div>
+                <button class="btn-secondary" onclick="logout()">Logout</button>
+            </div>
+            <div class="card" style="border-radius: 0 0 12px 12px;">
+                <div id="sync-status" style="margin-bottom: 15px; font-weight: bold;">✅ Syncing...</div>
+                <form id="test-form">
+                    <label>Kit Reference</label>
+                    <input type="text" id="kit-ref" required placeholder="KIT-123">
+                    
+                    <label>Location</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="gps-location" placeholder="Press Fetch ->" readonly>
+                        <button type="button" class="btn-secondary" onclick="getLocation()" style="margin-top: 8px;">Fetch</button>
+                    </div>
+                    
+                    <label>Capture Evidence</label>
+                    <input type="file" id="test-image" accept="image/*" capture="environment" required>
+                    
+                    <button type="submit" id="submit-btn" class="btn btn-primary">Save Test & Sync</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- 3. HQ ADMIN DASHBOARD -->
+        <div id="admin-section">
+            <div class="header" style="background: #1e3a8a;">
+                <div><h3 style="margin: 0;">HQ Dashboard</h3><small>Live Monitor</small></div>
+                <button class="btn-secondary" onclick="logout()">Logout</button>
+            </div>
+            <div class="card" style="border-radius: 0 0 12px 12px; overflow-x: auto;">
+                <button class="btn btn-primary" onclick="fetchRecords()" style="margin-top:0;">🔄 Refresh Data</button>
+                <table id="records-table">
+                    <thead><tr><th>ID</th><th>Officer</th><th>Kit Ref</th><th>Result</th><th>Status</th></tr></thead>
+                    <tbody id="records-body"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT APP LOGIC -->
+    <script>
+        const API_URL = "http://127.0.0.1:8000"; // Render deploy ke baad yahan link daalenge
+        const APP_VERSION = "1.0.0";
+        let token = localStorage.getItem("access_token");
+        let role = localStorage.getItem("role");
+        let offlineQueue = JSON.parse(localStorage.getItem('offline_tests')) || [];
+
+        // OTA UPDATE CHECK
+        async function checkAppVersion() {
+            try {
+                const res = await fetch(`${API_URL}/app-status`);
+                const data = await res.json();
+                if (data.latest_version !== APP_VERSION && data.force_update) {
+                    document.getElementById('update-screen').style.display = 'flex';
+                    document.getElementById('update-msg').innerText = `Update to ${data.latest_version} required.`;
+                    document.getElementById('update-btn').onclick = () => window.location.href = data.download_url;
+                }
+            } catch (e) { console.log("Offline: Skipping version check."); }
+        }
+
+        // INIT & ROUTING
+        function initApp() {
+            checkAppVersion();
+            document.getElementById('login-section').style.display = 'none';
+            document.getElementById('officer-section').style.display = 'none';
+            document.getElementById('admin-section').style.display = 'none';
+
+            if (token) {
+                if (role === 'hq_admin') {
+                    document.getElementById('admin-section').style.display = 'block';
+                    fetchRecords();
+                } else {
+                    document.getElementById('officer-section').style.display = 'block';
+                    document.getElementById('officer-id-display').innerText = `Officer: ${localStorage.getItem("username")}`;
+                    syncOfflineData();
+                    updateSyncStatusUI();
+                }
+            } else {
+                document.getElementById('login-section').style.display = 'block';
+            }
+        }
+
+        // LOGIN / LOGOUT
+        async function login() {
+            const uid = document.getElementById('userid').value;
+            const pass = document.getElementById('password').value;
+            try {
+                const res = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: uid, password: pass })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    localStorage.setItem("access_token", data.access_token);
+                    localStorage.setItem("username", uid);
+                    localStorage.setItem("role", data.role);
+                    token = data.access_token; role = data.role;
+                    initApp();
+                } else { alert("Invalid Credentials"); }
+            } catch(e) { alert("Network Error. Check connection."); }
+        }
+
+        function logout() { localStorage.clear(); token = null; role = null; initApp(); }
+
+        // OFFICER: GPS & SUBMIT
+        function getLocation() {
+            const gps = document.getElementById('gps-location');
+            gps.value = "Fetching...";
+            navigator.geolocation ? navigator.geolocation.getCurrentPosition(
+                pos => gps.value = `${pos.coords.latitude}, ${pos.coords.longitude}`,
+                err => { alert("GPS Denied"); gps.value = ""; }
+            ) : alert("GPS not supported");
+        }
+
+        document.getElementById('test-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submit-btn');
+            const officer_id = localStorage.getItem('username');
+            const kit = document.getElementById('kit-ref').value;
+            const gps = document.getElementById('gps-location').value || "Unknown";
+            const file = document.getElementById('test-image').files[0];
+            
+            btn.innerText = "Analyzing..."; btn.disabled = true;
+
+            if (!navigator.onLine) {
+                saveOffline(officer_id, kit, gps);
+                btn.innerText = "Save Test & Sync"; btn.disabled = false;
+                return;
+            }
+
+            const fd = new FormData();
+            fd.append('officer_id', officer_id); fd.append('kit_reference', kit);
+            fd.append('gps_location', gps); fd.append('file', file);
+
+            try {
+                const res = await fetch(`${API_URL}/api/upload`, { method: 'POST', body: fd });
+                if (res.ok) {
+                    const data = await res.json();
+                    alert(`✅ Saved to HQ! Result: ${data.result}`);
+                    document.getElementById('test-form').reset();
+                } else { saveOffline(officer_id, kit, gps); }
+            } catch (err) { saveOffline(officer_id, kit, gps); } 
+            finally { btn.innerText = "Save Test & Sync"; btn.disabled = false; }
+        });
+
+        // OFFICER: OFFLINE SYNC
+        function saveOffline(uid, kit, gps) {
+            offlineQueue.push({ officer_id: uid, kit_reference: kit, gps_location: gps, timestamp: new Date().toISOString() });
+            localStorage.setItem('offline_tests', JSON.stringify(offlineQueue));
+            alert("📶 Offline! Saved to device. Auto-sync on connection.");
+            document.getElementById('test-form').reset();
+            updateSyncStatusUI();
+        }
+
+        async function syncOfflineData() {
+            if (offlineQueue.length === 0 || !navigator.onLine) return;
+            try {
+                const res = await fetch(`${API_URL}/api/sync`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ records: offlineQueue })
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    offlineQueue = []; localStorage.removeItem('offline_tests');
+                    alert(`🔄 Auto-Synced ${data.synced_count} offline records!`);
+                    updateSyncStatusUI();
+                }
+            } catch (e) { console.log("Sync failed."); }
+        }
+
+        function updateSyncStatusUI() {
+            const status = document.getElementById('sync-status');
+            if (offlineQueue.length > 0) {
+                status.innerHTML = `⚠️ ${offlineQueue.length} tests pending sync.`;
+                status.style.color = "#ea580c";
+            } else {
+                status.innerHTML = "✅ All tests synced with HQ.";
+                status.style.color = "#16a34a";
+            }
+        }
+        window.addEventListener('online', syncOfflineData);
+        window.addEventListener('offline', updateSyncStatusUI);
+
+        // ADMIN: FETCH RECORDS
+        async function fetchRecords() {
+            try {
+                const res = await fetch(`${API_URL}/api/records`);
+                const data = await res.json();
+                const tbody = document.getElementById('records-body');
+                tbody.innerHTML = "";
+                data.forEach(r => {
+                    tbody.innerHTML += `<tr>
+                        <td>#${r.id}</td><td>${r.officer_id}</td>
+                        <td>${r.kit_reference}</td><td><strong>${r.result}</strong></td>
+                        <td>${r.sync_status}</td>
+                    </tr>`;
+                });
+            } catch(e) { alert("Failed to fetch records"); }
+        }
+
+        initApp();
+    </script>
+</body>
+  </html>
