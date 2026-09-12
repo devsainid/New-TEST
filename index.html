@@ -44,7 +44,7 @@
         .notebook-label { font-weight: bold; color: #475569; }
         .notebook-value { color: #0f172a; font-weight: bold; }
 
-        /* VIDEO SPLASH CSS (Fixed with object-fit: contain) */
+        /* VIDEO SPLASH CSS (Fixed Resolution) */
         .video-splash { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: #000; z-index: 10000; display: flex; justify-content: center; align-items: center; }
         .video-splash video { width: 100%; height: 100%; object-fit: contain; }
 
@@ -121,9 +121,7 @@
 
     <div id="main-wrapper" class="container">
         
-        <!-- ========================================== -->
         <!-- 1. AUTHENTICATION SCREENS -->
-        <!-- ========================================== -->
         <div id="auth-section" class="card" style="margin-top: 10vh; text-align: center; padding: 40px 25px;">
             <div style="background: #e0e7ff; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px auto;">
                 <span style="font-size: 30px;">🛡️</span>
@@ -147,9 +145,7 @@
             </div>
         </div>
 
-        <!-- ========================================== -->
         <!-- 2. OFFICER APP SCREEN -->
-        <!-- ========================================== -->
         <div id="officer-section">
             <div class="header">
                 <div>
@@ -158,7 +154,7 @@
                 </div>
             </div>
             
-            <!-- OFFICER: HOME TAB (FORM) -->
+            <!-- OFFICER: HOME TAB -->
             <div id="tab-home" class="tab-content active card" style="border-radius: 0 0 16px 16px; padding-top: 20px;">
                 <div style="text-align: right; margin-bottom: 15px; font-size: 12px; color: #64748b;">
                     <span id="network-indicator"><span class="status-dot"></span>System Active</span>
@@ -207,116 +203,97 @@
                 <button class="btn btn-secondary" onclick="logout()" style="margin-top: 20px;">🚪 Logout Securely</button>
             </div>
         </div>
-    </div> <!-- END CONTAINER -->
 
-    <!-- ========================================== -->
-    <!-- 3. HQ ADMIN DASHBOARD -->
-    <!-- ========================================== -->
-    <div id="admin-section" class="admin-container">
-        <div class="header" style="background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%);">
-            <div>
-                <h2 style="margin: 0; font-size: 20px;">HQ Command Center</h2>
-                <small style="color: #bfdbfe;">Secure Evidence Monitoring System</small>
-            </div>
-        </div>
-
-        <!-- ADMIN: DASHBOARD TAB (LIVE TABLE) -->
-        <div id="admin-tab-dashboard" class="tab-content active card" style="border-radius: 0 0 16px 16px; overflow-x: auto; padding-top: 20px;">
-            
-            <!-- ADMIN SLIDER -->
-            <div class="slider-container">
-                <div class="slider-track slider-animator">
-                    <div class="slide-item bg-skyblue"><div class="slide-icon">🔍</div><div class="slide-text">Real-time Monitoring.<br>Track field tests instantly.</div></div>
-                    <div class="slide-item bg-green"><div class="slide-icon">✔️</div><div class="slide-text">Hash Verification.<br>Ensure digital evidence integrity.</div></div>
-                    <div class="slide-item bg-yellow"><div class="slide-icon">📍</div><div class="slide-text">Location Tracking.<br>View exact GPS coordinates.</div></div>
-                    <div class="slide-item bg-purple"><div class="slide-icon">🛡️</div><div class="slide-text">Role-based Access.<br>Monitor activities securely.</div></div>
+        <!-- 3. HQ ADMIN DASHBOARD -->
+        <div id="admin-section" class="admin-container">
+            <div class="header" style="background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%);">
+                <div>
+                    <h2 style="margin: 0; font-size: 20px;">HQ Command Center</h2>
+                    <small style="color: #bfdbfe;">Secure Evidence Monitoring System</small>
                 </div>
             </div>
 
-            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-                <input type="text" id="search-input" placeholder="🔍 Search by Sample ID..." onkeyup="searchRecords()" style="margin-bottom: 0;">
-                <button class="btn btn-primary" onclick="fetchRecords()" style="width: auto; padding: 12px 20px; margin-top: 0;">🔄 Refresh</button>
+            <!-- ADMIN: DASHBOARD TAB -->
+            <div id="admin-tab-dashboard" class="tab-content active card" style="border-radius: 0 0 16px 16px; overflow-x: auto; padding-top: 20px;">
+                
+                <!-- ADMIN SLIDER -->
+                <div class="slider-container">
+                    <div class="slider-track slider-animator">
+                        <div class="slide-item bg-skyblue"><div class="slide-icon">🔍</div><div class="slide-text">Real-time Monitoring.<br>Track field tests instantly.</div></div>
+                        <div class="slide-item bg-green"><div class="slide-icon">✔️</div><div class="slide-text">Hash Verification.<br>Ensure digital evidence integrity.</div></div>
+                        <div class="slide-item bg-yellow"><div class="slide-icon">📍</div><div class="slide-text">Location Tracking.<br>View exact GPS coordinates.</div></div>
+                        <div class="slide-item bg-purple"><div class="slide-icon">🛡️</div><div class="slide-text">Role-based Access.<br>Monitor activities securely.</div></div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                    <input type="text" id="search-input" placeholder="🔍 Search by Sample ID..." onkeyup="searchRecords()" style="margin-bottom: 0;">
+                    <button class="btn btn-primary" onclick="fetchRecords()" style="width: auto; padding: 12px 20px; margin-top: 0;">🔄 Refresh</button>
+                </div>
+                <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px;">
+                    <thead>
+                        <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0; color: #0f172a;">
+                            <th style="padding: 12px;">Sample ID (Click to View)</th>
+                            <th style="padding: 12px;">Location</th>
+                            <th style="padding: 12px;">Test Type</th>
+                            <th style="padding: 12px;">Result</th>
+                            <th style="padding: 12px;">Date & Time</th>
+                            <th style="padding: 12px;">Analyst</th>
+                            <th style="padding: 12px;">Digital Evidence Hash</th>
+                        </tr>
+                    </thead>
+                    <tbody id="records-body"></tbody>
+                </table>
             </div>
-            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px;">
-                <thead>
-                    <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0; color: #0f172a;">
-                        <th style="padding: 12px;">Sample ID (Click to View)</th>
-                        <th style="padding: 12px;">Location</th>
-                        <th style="padding: 12px;">Test Type</th>
-                        <th style="padding: 12px;">Result</th>
-                        <th style="padding: 12px;">Date & Time</th>
-                        <th style="padding: 12px;">Analyst</th>
-                        <th style="padding: 12px;">Digital Evidence Hash</th>
-                    </tr>
-                </thead>
-                <tbody id="records-body"></tbody>
-            </table>
-        </div>
 
-        <!-- ADMIN: ANALYTICS TAB -->
-        <div id="admin-tab-analytics" class="tab-content card" style="border-radius: 0 0 16px 16px; padding-top: 30px;">
-            <h3 style="margin: 0 0 15px 0; font-size: 18px; color: #1e293b;">📈 Quick Analytics</h3>
-            <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-                <div class="stat-card">
-                    <div style="color:#64748b; font-size:14px;">Total Tests Logged</div>
-                    <div class="stat-val" id="stat-total">0</div>
+            <!-- ADMIN: ANALYTICS TAB -->
+            <div id="admin-tab-analytics" class="tab-content card" style="border-radius: 0 0 16px 16px; padding-top: 30px;">
+                <h3 style="margin: 0 0 15px 0; font-size: 18px; color: #1e293b;">📈 Quick Analytics</h3>
+                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                    <div class="stat-card">
+                        <div style="color:#64748b; font-size:14px;">Total Tests Logged</div>
+                        <div class="stat-val" id="stat-total">0</div>
+                    </div>
+                    <div class="stat-card" style="border-color: #fca5a5;">
+                        <div style="color:#dc2626; font-size:14px; font-weight:bold;">Positive Indications</div>
+                        <div class="stat-val" id="stat-pos">0</div>
+                    </div>
+                    <div class="stat-card" style="border-color: #86efac;">
+                        <div style="color:#16a34a; font-size:14px; font-weight:bold;">Negative Indications</div>
+                        <div class="stat-val" id="stat-neg">0</div>
+                    </div>
                 </div>
-                <div class="stat-card" style="border-color: #fca5a5;">
-                    <div style="color:#dc2626; font-size:14px; font-weight:bold;">Positive Indications</div>
-                    <div class="stat-val" id="stat-pos">0</div>
-                </div>
-                <div class="stat-card" style="border-color: #86efac;">
-                    <div style="color:#16a34a; font-size:14px; font-weight:bold;">Negative Indications</div>
-                    <div class="stat-val" id="stat-neg">0</div>
-                </div>
+                <p style="color: #94a3b8; font-size: 12px; text-align: center; margin-top: 20px;">Detailed graphical reports will be available in the upcoming dashboard module.</p>
             </div>
-            <p style="color: #94a3b8; font-size: 12px; text-align: center; margin-top: 20px;">Detailed graphical reports will be available in the upcoming dashboard module.</p>
-        </div>
 
-        <!-- ADMIN: PROFILE TAB -->
-        <div id="admin-tab-profile" class="tab-content card" style="border-radius: 0 0 16px 16px; padding-top: 30px; text-align: center;">
-            <div style="font-size: 50px; margin-bottom: 10px;">👑</div>
-            <h3 style="margin: 0 0 5px 0; font-size: 18px; color: #1e293b;">HQ Administrator</h3>
-            <p style="color: #64748b; font-size: 14px; margin-bottom: 25px;">Master Access Granted</p>
-            <button class="btn btn-secondary" onclick="logout()">🚪 Logout Securely</button>
+            <!-- ADMIN: PROFILE TAB -->
+            <div id="admin-tab-profile" class="tab-content card" style="border-radius: 0 0 16px 16px; padding-top: 30px; text-align: center;">
+                <div style="font-size: 50px; margin-bottom: 10px;">👑</div>
+                <h3 style="margin: 0 0 5px 0; font-size: 18px; color: #1e293b;">HQ Administrator</h3>
+                <p style="color: #64748b; font-size: 14px; margin-bottom: 25px;">Master Access Granted</p>
+                <button class="btn btn-secondary" onclick="logout()">🚪 Logout Securely</button>
+            </div>
         </div>
-
     </div>
 
-    <!-- ========================================== -->
     <!-- BOTTOM NAVIGATIONS -->
-    <!-- ========================================== -->
-    
     <!-- OFFICER BOTTOM NAV -->
     <div id="officer-bottom-nav" class="bottom-nav" style="display: none;">
-        <div class="nav-item active" id="nav-home" onclick="switchTab('home')">
-            <span class="nav-icon">🏠</span><span>Home</span>
-        </div>
-        <div class="nav-item" id="nav-history" onclick="switchTab('history')">
-            <span class="nav-icon">🕒</span><span>History</span>
-        </div>
+        <div class="nav-item active" id="nav-home" onclick="switchTab('home')"><span class="nav-icon">🏠</span><span>Home</span></div>
+        <div class="nav-item" id="nav-history" onclick="switchTab('history')"><span class="nav-icon">🕒</span><span>History</span></div>
         <div class="nav-fab-container"><div class="nav-fab" onclick="openCameraFromNav()">📷</div></div>
-        <div class="nav-item" id="nav-profile" onclick="switchTab('profile')">
-            <span class="nav-icon">👤</span><span>Profile</span>
-        </div>
+        <div class="nav-item" id="nav-profile" onclick="switchTab('profile')"><span class="nav-icon">👤</span><span>Profile</span></div>
     </div>
 
     <!-- ADMIN BOTTOM NAV -->
     <div id="admin-bottom-nav" class="bottom-nav" style="display: none;">
-        <div class="nav-item active" id="nav-admin-dashboard" onclick="switchAdminTab('dashboard')">
-            <span class="nav-icon">📊</span><span>Dashboard</span>
-        </div>
-        <div class="nav-item" id="nav-admin-analytics" onclick="switchAdminTab('analytics')">
-            <span class="nav-icon">📈</span><span>Analytics</span>
-        </div>
-        <div class="nav-item" id="nav-admin-profile" onclick="switchAdminTab('profile')">
-            <span class="nav-icon">👑</span><span>HQ Profile</span>
-        </div>
+        <div class="nav-item active" id="nav-admin-dashboard" onclick="switchAdminTab('dashboard')"><span class="nav-icon">📊</span><span>Dashboard</span></div>
+        <div class="nav-item" id="nav-admin-analytics" onclick="switchAdminTab('analytics')"><span class="nav-icon">📈</span><span>Analytics</span></div>
+        <div class="nav-item" id="nav-admin-profile" onclick="switchAdminTab('profile')"><span class="nav-icon">👑</span><span>HQ Profile</span></div>
     </div>
 
     <!-- JAVASCRIPT APP LOGIC -->
     <script>
-        // REPLACE THIS WITH YOUR RENDER APP URL IF IT CHANGES
         const API_URL = "https://new-test-dcgz.onrender.com"; 
         
         let token = localStorage.getItem("access_token");
@@ -499,7 +476,7 @@
         }
 
         // ==========================================
-        // SUBMIT FORM WITH GEMINI AI REJECTION LOGIC
+        // SUBMIT FORM & GEMINI REJECTION HANDLING
         // ==========================================
         document.getElementById('test-form').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -509,7 +486,7 @@
             const location_name = document.getElementById('location-name').value;
             const test_type = document.getElementById('test-type').value;
             const file = document.getElementById('test-image').files[0];
-            btn.innerText = "⏳ Saving..."; btn.disabled = true;
+            btn.innerText = "⏳ Analyzing Evidence..."; btn.disabled = true;
 
             if (!navigator.onLine) {
                 saveToOfflineVault(officer_id, sample_id, test_type, location_name, secretLocation);
@@ -528,12 +505,11 @@
                 const res = await fetch(`${API_URL}/api/upload`, { method: 'POST', body: fd });
                 const data = await res.json();
                 
-                // NAYA LOGIC: Gemini Success & Rejection Handling
                 if (res.ok && data.success === true) {
                     alert(`✅ Digital Record Saved! Result: ${data.result}`);
                     resetFormUI(btn); fetchOfficerHistory(); switchTab('history'); 
                 } else if (data.success === false) {
-                    // AI Rejection Alert
+                    // AI REJECTION ALERT
                     alert(`❌ ALERT: ${data.message || data.error_msg}`);
                     btn.innerText = "💾 Save Record"; btn.disabled = false;
                 } else {
@@ -593,10 +569,10 @@
                 const res = await fetch(`${API_URL}/api/records`);
                 allRecordsData = await res.json(); 
                 
-                // Analytics
+                // Analytics Handling
                 document.getElementById('stat-total').innerText = allRecordsData.length;
                 let posCount = allRecordsData.filter(r => r.result.includes("Positive")).length;
-                let negCount = allRecordsData.filter(r => !r.result.includes("Positive")).length;
+                let negCount = allRecordsData.filter(r => !r.result.includes("Positive") && r.result !== "PENDING_SYNC_ANALYSIS").length;
                 document.getElementById('stat-pos').innerText = posCount;
                 document.getElementById('stat-neg').innerText = negCount;
                 
