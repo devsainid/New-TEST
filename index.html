@@ -23,7 +23,7 @@
         
         .header { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: white; padding: 20px; display: flex; justify-content: space-between; align-items: center; border-radius: 16px 16px 0 0; margin-bottom: -10px; z-index: 10; position: relative; }
         
-        .camera-btn { display: block; width: 100%; background: #eff6ff; color: #2563eb; border: 2px dashed #3b82f6; padding: 20px; text-align: center; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; }
+        .camera-btn { display: block; width: 100%; background: #eff6ff; color: #2563eb; border: 2px dashed #3b82f6; padding: 20px; text-align: center; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.3s; }
         .camera-btn i { font-size: 24px; display: block; margin-bottom: 5px; }
         input[type="file"] { display: none; }
 
@@ -40,21 +40,20 @@
         .close-btn { position: absolute; top: 15px; right: 20px; background: none; border: none; font-size: 24px; cursor: pointer; color: #64748b; }
         .notebook-row { display: flex; justify-content: space-between; border-bottom: 1px dashed #cbd5e1; }
         .notebook-label { font-weight: bold; color: #475569; }
-        .notebook-value { color: #0f172a; font-weight: bold; }
+        .notebook-value { color: #0f172a; font-weight: bold; text-align: right; }
 
-        /* NAYA: VIDEO SCREENS CSS */
         .video-splash { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: #000; z-index: 10000; display: flex; justify-content: center; align-items: center; }
         .video-splash video { width: 100%; height: 100%; object-fit: cover; }
     </style>
 </head>
 <body>
 
-    <!-- 🎬 NAYA: APP KHULTE HI 2 SECOND WALA INTRO VIDEO (Muted required for autoplay) -->
+    <!-- APP KHULTE HI INTRO VIDEO -->
     <div id="intro-screen" class="video-splash">
         <video id="intro-vid" src="intro.mp4" autoplay muted playsinline></video>
     </div>
 
-    <!-- 🎬 NAYA: LOGIN SUCCESS HONE PAR 5 SECOND WALA VIDEO (Sound allowed) -->
+    <!-- LOGIN SUCCESS PAR 5 SECOND WALA VIDEO -->
     <div id="login-video-screen" class="video-splash" style="display: none;">
         <video id="login-vid" src="login.mp4" playsinline></video>
     </div>
@@ -132,7 +131,7 @@
                     
                     <div class="input-group">
                         <label>Capture Evidence</label>
-                        <label for="test-image" class="camera-btn">
+                        <label for="test-image" class="camera-btn" id="camera-btn-label">
                             <i>📸</i> <span id="camera-text">Tap to Open Camera</span>
                         </label>
                         <input type="file" id="test-image" accept="image/*" capture="environment" required onchange="updateCameraText(this)">
@@ -171,7 +170,7 @@
                         <th style="padding: 12px;">Sample ID (Click to View)</th>
                         <th style="padding: 12px;">Location</th>
                         <th style="padding: 12px;">Test Type</th>
-                        <th style="padding: 12px;">Result</th>
+                        <th style="padding: 12px;">AI Result</th>
                         <th style="padding: 12px;">Date & Time</th>
                         <th style="padding: 12px;">Analyst</th>
                         <th style="padding: 12px;">Digital Evidence Hash</th>
@@ -191,11 +190,8 @@
         let secretLocation = "Unknown GPS";
         let allRecordsData = [];
 
-        // NAYA LOGIC: HATAO INTRO VIDEO KO 2 SECOND BAAD
         window.onload = function() {
-            setTimeout(() => {
-                document.getElementById('intro-screen').style.display = 'none';
-            }, 2500); // Thoda buffer de diya 2.5 seconds ka
+            setTimeout(() => { document.getElementById('intro-screen').style.display = 'none'; }, 2500);
         };
 
         function initApp() {
@@ -266,7 +262,6 @@
                     localStorage.setItem("role", data.role);
                     token = data.access_token; role = data.role;
                     
-                    // NAYA LOGIC: LOGIN HOTE HI 5 SECONDS KI VIDEO PLAY KARO
                     document.getElementById('auth-section').style.display = 'none';
                     const loginScreen = document.getElementById('login-video-screen');
                     const loginVideo = document.getElementById('login-vid');
@@ -274,12 +269,10 @@
                     loginScreen.style.display = 'flex';
                     loginVideo.play();
 
-                    // 5 Seconds baad video hatao aur dashboard dikhao
                     setTimeout(() => {
                         loginScreen.style.display = 'none';
                         initApp();
                     }, 5000); 
-
                 } else { alert("Invalid Credentials"); }
             } catch(e) { alert("Network Error. Please try again."); }
         }
@@ -289,9 +282,9 @@
         function updateCameraText(input) {
             if (input.files && input.files[0]) {
                 document.getElementById('camera-text').innerText = "✅ Evidence Captured";
-                document.querySelector('.camera-btn').style.background = '#dcfce3';
-                document.querySelector('.camera-btn').style.borderColor = '#16a34a';
-                document.querySelector('.camera-btn').style.color = '#16a34a';
+                document.getElementById('camera-btn-label').style.background = '#dcfce3';
+                document.getElementById('camera-btn-label').style.borderColor = '#16a34a';
+                document.getElementById('camera-btn-label').style.color = '#16a34a';
             }
         }
 
@@ -338,7 +331,7 @@
             const location_name = document.getElementById('location-name').value;
             const test_type = document.getElementById('test-type').value;
             const file = document.getElementById('test-image').files[0];
-            btn.innerText = "⏳ Saving..."; btn.disabled = true;
+            btn.innerText = "⏳ AI Analyzing..."; btn.disabled = true;
 
             if (!navigator.onLine) {
                 saveToOfflineVault(officer_id, sample_id, test_type, location_name, secretLocation);
@@ -355,19 +348,39 @@
 
             try {
                 const res = await fetch(`${API_URL}/api/upload`, { method: 'POST', body: fd });
-                if (res.ok) {
-                    alert(`✅ Digital Record Saved!`);
+                const data = await res.json();
+                
+                // NAYA: RETAKE PHOTO LOGIC
+                if (res.ok && data.success === true) {
+                    alert(`✅ Record Saved!\nAI Result: ${data.result}\nConfidence: ${data.confidence}`);
                     resetFormUI(btn); fetchOfficerHistory(); 
-                } else { saveToOfflineVault(officer_id, sample_id, test_type, location_name, secretLocation); resetFormUI(btn); }
+                } 
+                else if (res.ok && data.success === false && data.error === "POOR_QUALITY") {
+                    // Agar backend ne photo reject kar di
+                    alert(`⚠️ AI QUALITY CHECK FAILED:\n${data.message}`);
+                    
+                    // Form ko waise hi rakho, sirf photo hatakar camera button laal kardo
+                    document.getElementById('test-image').value = "";
+                    document.getElementById('camera-text').innerText = "❌ Please Retake Photo";
+                    document.getElementById('camera-btn-label').style.background = '#fef2f2';
+                    document.getElementById('camera-btn-label').style.borderColor = '#dc2626';
+                    document.getElementById('camera-btn-label').style.color = '#dc2626';
+                    
+                    btn.innerText = "💾 Save Record"; btn.disabled = false;
+                }
+                else { 
+                    saveToOfflineVault(officer_id, sample_id, test_type, location_name, secretLocation); 
+                    resetFormUI(btn); 
+                }
             } catch (err) { saveToOfflineVault(officer_id, sample_id, test_type, location_name, secretLocation); resetFormUI(btn); }
         });
 
         function resetFormUI(btn) {
             document.getElementById('test-form').reset();
             document.getElementById('camera-text').innerText = "Tap to Open Camera";
-            document.querySelector('.camera-btn').style.background = '#eff6ff';
-            document.querySelector('.camera-btn').style.borderColor = '#3b82f6';
-            document.querySelector('.camera-btn').style.color = '#2563eb';
+            document.getElementById('camera-btn-label').style.background = '#eff6ff';
+            document.getElementById('camera-btn-label').style.borderColor = '#3b82f6';
+            document.getElementById('camera-btn-label').style.color = '#2563eb';
             btn.innerText = "💾 Save Record"; btn.disabled = false;
         }
 
@@ -406,6 +419,7 @@
         window.addEventListener('online', () => { chupchapSync(); updateSilentStatusUI(); });
         window.addEventListener('offline', updateSilentStatusUI);
 
+        // HQ ADMIN LOGIC & MODAL
         async function fetchRecords() {
             try {
                 const res = await fetch(`${API_URL}/api/records`);
@@ -419,6 +433,9 @@
                                       : `<span style="color:#ea580c;">Offline Synced</span>`;
                     
                     const badgeClass = r.result.includes("Positive") ? "badge-pos" : "badge-neg";
+                    
+                    // Detailed result if confidence exists
+                    const resultText = r.confidence !== "N/A" ? `${r.result} <br><small style="color:#64748b;">Conf: ${r.confidence}</small>` : r.result;
 
                     tbody.innerHTML += `<tr class="record-row" style="border-bottom: 1px solid #e2e8f0;">
                         <td style="padding: 12px; font-weight:bold;">
@@ -426,7 +443,7 @@
                         </td>
                         <td style="padding: 12px;">${r.location_name}<br><small style="color:#94a3b8; font-size:10px;">${r.gps_location}</small></td>
                         <td style="padding: 12px;">${r.test_type}</td>
-                        <td style="padding: 12px;"><span class="${badgeClass}">${r.result}</span></td>
+                        <td style="padding: 12px;"><span class="${badgeClass}">${resultText}</span></td>
                         <td style="padding: 12px; font-family: monospace;">${new Date(r.timestamp).toLocaleString()}</td>
                         <td style="padding: 12px;">${r.officer_id}</td>
                         <td style="padding: 12px;">${displayHash}</td>
@@ -445,7 +462,8 @@
                 <div class="notebook-row"><span class="notebook-label">Sample ID:</span> <span class="notebook-value" style="color:#1e3a8a;">${record.sample_id}</span></div>
                 <div class="notebook-row"><span class="notebook-label">Location:</span> <span class="notebook-value">${record.location_name}</span></div>
                 <div class="notebook-row"><span class="notebook-label">Test Type:</span> <span class="notebook-value">${record.test_type}</span></div>
-                <div class="notebook-row"><span class="notebook-label">Result:</span> <span class="notebook-value" style="color:${resultColor}; text-decoration:underline;">${record.result}</span></div>
+                <div class="notebook-row"><span class="notebook-label">AI Result:</span> <span class="notebook-value" style="color:${resultColor}; text-decoration:underline;">${record.result}</span></div>
+                <div class="notebook-row"><span class="notebook-label">AI Confidence:</span> <span class="notebook-value">${record.confidence}</span></div>
                 <div class="notebook-row"><span class="notebook-label">Date & Time:</span> <span class="notebook-value">${new Date(record.timestamp).toLocaleString()}</span></div>
                 <div class="notebook-row" style="border-bottom:none;"><span class="notebook-label">Analyst:</span> <span class="notebook-value" style="font-style:italic;">${record.officer_id}</span></div>
             `;
@@ -455,9 +473,7 @@
             document.getElementById('report-modal').style.display = 'flex';
         }
 
-        function closeModal() {
-            document.getElementById('report-modal').style.display = 'none';
-        }
+        function closeModal() { document.getElementById('report-modal').style.display = 'none'; }
 
         function searchRecords() {
             const filter = document.getElementById('search-input').value.toUpperCase();
