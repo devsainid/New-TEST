@@ -70,22 +70,28 @@
         .nav-item { display: flex; flex-direction: column; align-items: center; color: #64748b; font-size: 12px; font-weight: 600; cursor: pointer; transition: color 0.3s; flex: 1; }
         .nav-item.active { color: #2563eb; }
         .nav-icon { font-size: 22px; margin-bottom: 3px; }
+        
         .nav-fab-container { position: relative; flex: 1; display: flex; justify-content: center; }
         .nav-fab { position: absolute; top: -30px; width: 60px; height: 60px; background: linear-gradient(135deg, #2563eb, #1e3a8a); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 24px; color: white; box-shadow: 0 4px 10px rgba(37,99,235,0.4); cursor: pointer; border: 4px solid #f1f5f9; }
+        
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
-        /* NAYA: AUTO-SLIDING BANNER CSS */
+        /* AUTO-SLIDING BANNER CSS */
         .slider-container { width: 100%; overflow: hidden; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
         .slider-track { display: flex; width: 400%; transition: transform 0.5s ease-in-out; }
         .slide-item { width: 25%; padding: 15px; display: flex; align-items: center; justify-content: flex-start; gap: 15px; color: black; }
         .slide-icon { font-size: 24px; background: white; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         .slide-text { font-size: 13px; font-weight: 600; line-height: 1.4; }
-        /* 4 Colors as Requested */
+        
         .bg-skyblue { background: #e0f2fe; }
         .bg-green { background: #dcfce3; }
         .bg-yellow { background: #fef08a; }
         .bg-purple { background: #f3e8ff; }
+        
+        /* Analytics Cards */
+        .stat-card { background: #f8fafc; border: 1px solid #e2e8f0; padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 15px; flex: 1; }
+        .stat-val { font-size: 28px; font-weight: bold; color: #1e293b; margin-top: 5px; }
     </style>
 </head>
 <body>
@@ -115,7 +121,9 @@
 
     <div id="main-wrapper" class="container">
         
-        <!-- AUTHENTICATION SCREENS -->
+        <!-- ========================================== -->
+        <!-- 1. AUTHENTICATION SCREENS -->
+        <!-- ========================================== -->
         <div id="auth-section" class="card" style="margin-top: 10vh; text-align: center; padding: 40px 25px;">
             <div style="background: #e0e7ff; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px auto;">
                 <span style="font-size: 30px;">🛡️</span>
@@ -139,7 +147,9 @@
             </div>
         </div>
 
-        <!-- OFFICER APP SCREEN -->
+        <!-- ========================================== -->
+        <!-- 2. OFFICER APP SCREEN -->
+        <!-- ========================================== -->
         <div id="officer-section">
             <div class="header">
                 <div>
@@ -148,48 +158,25 @@
                 </div>
             </div>
             
-            <!-- HOME TAB (FORM) -->
+            <!-- OFFICER: HOME TAB (FORM) -->
             <div id="tab-home" class="tab-content active card" style="border-radius: 0 0 16px 16px; padding-top: 20px;">
                 <div style="text-align: right; margin-bottom: 15px; font-size: 12px; color: #64748b;">
                     <span id="network-indicator"><span class="status-dot"></span>System Active</span>
                 </div>
 
-                <!-- NAYA: AUTO-SLIDING BANNER (4 Messages) -->
+                <!-- OFFICER SLIDER -->
                 <div class="slider-container">
-                    <div class="slider-track" id="slider-track">
-                        <!-- Message 1: Skyblue -->
-                        <div class="slide-item bg-skyblue">
-                            <div class="slide-icon">📷</div>
-                            <div class="slide-text">Keep colour card in frame.<br>Capture clear evidence.</div>
-                        </div>
-                        <!-- Message 2: Green -->
-                        <div class="slide-item bg-green">
-                            <div class="slide-icon">📶</div>
-                            <div class="slide-text">Offline Vault is Active.<br>Data saves securely without net.</div>
-                        </div>
-                        <!-- Message 3: Yellow -->
-                        <div class="slide-item bg-yellow">
-                            <div class="slide-icon">📍</div>
-                            <div class="slide-text">Stealth GPS Tagging.<br>Location is fetched secretly.</div>
-                        </div>
-                        <!-- Message 4: Purple -->
-                        <div class="slide-item bg-purple">
-                            <div class="slide-icon">🛡️</div>
-                            <div class="slide-text">Zero-Trust Security.<br>End-to-end encrypted records.</div>
-                        </div>
+                    <div class="slider-track slider-animator">
+                        <div class="slide-item bg-skyblue"><div class="slide-icon">📷</div><div class="slide-text">Keep colour card in frame.<br>Capture clear evidence.</div></div>
+                        <div class="slide-item bg-green"><div class="slide-icon">📶</div><div class="slide-text">Offline Vault is Active.<br>Data saves securely without net.</div></div>
+                        <div class="slide-item bg-yellow"><div class="slide-icon">📍</div><div class="slide-text">Stealth GPS Tagging.<br>Location is fetched secretly.</div></div>
+                        <div class="slide-item bg-purple"><div class="slide-icon">🛡️</div><div class="slide-text">Zero-Trust Security.<br>End-to-end encrypted records.</div></div>
                     </div>
                 </div>
-                <!-- SLIDER KHATAM -->
                 
                 <form id="test-form">
-                    <div class="input-group">
-                        <label>Sample ID</label>
-                        <input type="text" id="sample-id" required placeholder="e.g. A-12">
-                    </div>
-                    <div class="input-group">
-                        <label>Location</label>
-                        <input type="text" id="location-name" required placeholder="e.g. Site - Warehouse">
-                    </div>
+                    <div class="input-group"><label>Sample ID</label><input type="text" id="sample-id" required placeholder="e.g. A-12"></div>
+                    <div class="input-group"><label>Location</label><input type="text" id="location-name" required placeholder="e.g. Site - Warehouse"></div>
                     <div class="input-group">
                         <label>Test Type</label>
                         <select id="test-type">
@@ -198,45 +185,54 @@
                             <option value="Other">Other</option>
                         </select>
                     </div>
-                    
                     <div class="input-group">
                         <label>Capture Evidence</label>
-                        <label for="test-image" class="camera-btn">
-                            <i>📸</i> <span id="camera-text">Tap to Open Camera</span>
-                        </label>
+                        <label for="test-image" class="camera-btn"><i>📸</i> <span id="camera-text">Tap to Open Camera</span></label>
                         <input type="file" id="test-image" accept="image/*" capture="environment" required onchange="updateCameraText(this)">
                     </div>
-                    
                     <button type="submit" id="submit-btn" class="btn btn-primary" style="margin-top: 10px;">💾 Save Record</button>
                 </form>
             </div>
 
-            <!-- HISTORY TAB -->
+            <!-- OFFICER: HISTORY TAB -->
             <div id="tab-history" class="tab-content card" style="border-radius: 0 0 16px 16px; padding-top: 30px;">
                 <h3 style="margin: 0 0 15px 0; font-size: 18px; color: #1e293b;">🕒 Recent Digital Records</h3>
                 <div id="history-list"><p style="color: #94a3b8; font-size: 14px; text-align: center;">Fetching history...</p></div>
             </div>
 
-            <!-- PROFILE TAB -->
+            <!-- OFFICER: PROFILE TAB -->
             <div id="tab-profile" class="tab-content card" style="border-radius: 0 0 16px 16px; padding-top: 30px; text-align: center;">
                 <h3 style="margin: 0 0 15px 0; font-size: 18px; color: #1e293b;">👤 Officer Profile</h3>
                 <p>Welcome to the secure portal.</p>
                 <button class="btn btn-secondary" onclick="logout()" style="margin-top: 20px;">🚪 Logout Securely</button>
             </div>
-            
         </div>
-    </div>
+    </div> <!-- END CONTAINER -->
 
-    <!-- HQ ADMIN DASHBOARD -->
+    <!-- ========================================== -->
+    <!-- 3. HQ ADMIN DASHBOARD -->
+    <!-- ========================================== -->
     <div id="admin-section" class="admin-container">
         <div class="header" style="background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%);">
             <div>
-                <h2 style="margin: 0; font-size: 20px;">HQ Dashboard - Digital Evidence Log</h2>
-                <small style="color: #bfdbfe;">Secure Presumptive Testing Records</small>
+                <h2 style="margin: 0; font-size: 20px;">HQ Command Center</h2>
+                <small style="color: #bfdbfe;">Secure Evidence Monitoring System</small>
             </div>
-            <button class="btn-secondary" onclick="logout()">Logout</button>
         </div>
-        <div class="card" style="border-radius: 0 0 16px 16px; overflow-x: auto; padding-top: 30px;">
+
+        <!-- ADMIN: DASHBOARD TAB (LIVE TABLE) -->
+        <div id="admin-tab-dashboard" class="tab-content active card" style="border-radius: 0 0 16px 16px; overflow-x: auto; padding-top: 20px;">
+            
+            <!-- ADMIN SLIDER -->
+            <div class="slider-container">
+                <div class="slider-track slider-animator">
+                    <div class="slide-item bg-skyblue"><div class="slide-icon">🔍</div><div class="slide-text">Real-time Monitoring.<br>Track field tests instantly.</div></div>
+                    <div class="slide-item bg-green"><div class="slide-icon">✔️</div><div class="slide-text">Hash Verification.<br>Ensure digital evidence integrity.</div></div>
+                    <div class="slide-item bg-yellow"><div class="slide-icon">📍</div><div class="slide-text">Location Tracking.<br>View exact GPS coordinates.</div></div>
+                    <div class="slide-item bg-purple"><div class="slide-icon">🛡️</div><div class="slide-text">Role-based Access.<br>Monitor activities securely.</div></div>
+                </div>
+            </div>
+
             <div style="display: flex; gap: 10px; margin-bottom: 20px;">
                 <input type="text" id="search-input" placeholder="🔍 Search by Sample ID..." onkeyup="searchRecords()" style="margin-bottom: 0;">
                 <button class="btn btn-primary" onclick="fetchRecords()" style="width: auto; padding: 12px 20px; margin-top: 0;">🔄 Refresh</button>
@@ -256,27 +252,67 @@
                 <tbody id="records-body"></tbody>
             </table>
         </div>
+
+        <!-- ADMIN: ANALYTICS TAB -->
+        <div id="admin-tab-analytics" class="tab-content card" style="border-radius: 0 0 16px 16px; padding-top: 30px;">
+            <h3 style="margin: 0 0 15px 0; font-size: 18px; color: #1e293b;">📈 Quick Analytics</h3>
+            <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                <div class="stat-card">
+                    <div style="color:#64748b; font-size:14px;">Total Tests Logged</div>
+                    <div class="stat-val" id="stat-total">0</div>
+                </div>
+                <div class="stat-card" style="border-color: #fca5a5;">
+                    <div style="color:#dc2626; font-size:14px; font-weight:bold;">Positive Indications</div>
+                    <div class="stat-val" id="stat-pos">0</div>
+                </div>
+                <div class="stat-card" style="border-color: #86efac;">
+                    <div style="color:#16a34a; font-size:14px; font-weight:bold;">Negative Indications</div>
+                    <div class="stat-val" id="stat-neg">0</div>
+                </div>
+            </div>
+            <p style="color: #94a3b8; font-size: 12px; text-align: center; margin-top: 20px;">Detailed graphical reports will be available in the upcoming dashboard module.</p>
+        </div>
+
+        <!-- ADMIN: PROFILE TAB -->
+        <div id="admin-tab-profile" class="tab-content card" style="border-radius: 0 0 16px 16px; padding-top: 30px; text-align: center;">
+            <div style="font-size: 50px; margin-bottom: 10px;">👑</div>
+            <h3 style="margin: 0 0 5px 0; font-size: 18px; color: #1e293b;">HQ Administrator</h3>
+            <p style="color: #64748b; font-size: 14px; margin-bottom: 25px;">Master Access Granted</p>
+            <button class="btn btn-secondary" onclick="logout()">🚪 Logout Securely</button>
+        </div>
+
     </div>
 
-    <!-- BOTTOM NAVIGATION (Only for Officer) -->
+    <!-- ========================================== -->
+    <!-- BOTTOM NAVIGATIONS -->
+    <!-- ========================================== -->
+    
+    <!-- OFFICER BOTTOM NAV -->
     <div id="officer-bottom-nav" class="bottom-nav" style="display: none;">
         <div class="nav-item active" id="nav-home" onclick="switchTab('home')">
-            <span class="nav-icon">🏠</span>
-            <span>Home</span>
+            <span class="nav-icon">🏠</span><span>Home</span>
         </div>
         <div class="nav-item" id="nav-history" onclick="switchTab('history')">
-            <span class="nav-icon">🕒</span>
-            <span>History</span>
+            <span class="nav-icon">🕒</span><span>History</span>
         </div>
-        <div class="nav-fab-container">
-            <div class="nav-fab" onclick="openCameraFromNav()">📷</div>
-        </div>
+        <div class="nav-fab-container"><div class="nav-fab" onclick="openCameraFromNav()">📷</div></div>
         <div class="nav-item" id="nav-profile" onclick="switchTab('profile')">
-            <span class="nav-icon">👤</span>
-            <span>Profile</span>
+            <span class="nav-icon">👤</span><span>Profile</span>
         </div>
     </div>
 
+    <!-- ADMIN BOTTOM NAV -->
+    <div id="admin-bottom-nav" class="bottom-nav" style="display: none;">
+        <div class="nav-item active" id="nav-admin-dashboard" onclick="switchAdminTab('dashboard')">
+            <span class="nav-icon">📊</span><span>Dashboard</span>
+        </div>
+        <div class="nav-item" id="nav-admin-analytics" onclick="switchAdminTab('analytics')">
+            <span class="nav-icon">📈</span><span>Analytics</span>
+        </div>
+        <div class="nav-item" id="nav-admin-profile" onclick="switchAdminTab('profile')">
+            <span class="nav-icon">👑</span><span>HQ Profile</span>
+        </div>
+    </div>
 
     <!-- JAVASCRIPT APP LOGIC -->
     <script>
@@ -288,17 +324,16 @@
         let secretLocation = "Unknown GPS";
         let allRecordsData = [];
 
-        // NAYA: SLIDER LOGIC (Har 3 second mein slide change)
+        // SLIDER LOGIC (Applies to both Officer & Admin sliders simultaneously)
         let currentSlide = 0;
         const totalSlides = 4;
         function autoSlideBanner() {
-            const track = document.getElementById('slider-track');
-            if(track) {
-                currentSlide = (currentSlide + 1) % totalSlides;
+            currentSlide = (currentSlide + 1) % totalSlides;
+            document.querySelectorAll('.slider-animator').forEach(track => {
                 track.style.transform = `translateX(-${currentSlide * 25}%)`;
-            }
+            });
         }
-        setInterval(autoSlideBanner, 3000); // 3000ms = 3 Seconds
+        setInterval(autoSlideBanner, 3000); // 3 Seconds
 
         window.onload = function() {
             setTimeout(() => { document.getElementById('intro-screen').style.display = 'none'; }, 2500); 
@@ -309,18 +344,21 @@
             document.getElementById('officer-section').style.display = 'none';
             document.getElementById('admin-section').style.display = 'none';
             document.getElementById('officer-bottom-nav').style.display = 'none';
+            document.getElementById('admin-bottom-nav').style.display = 'none';
             document.getElementById('main-wrapper').className = "container"; 
 
             if (token) {
                 if (role === 'hq_admin') {
                     document.getElementById('admin-section').style.display = 'block';
+                    document.getElementById('admin-bottom-nav').style.display = 'flex'; // Show Admin Nav
                     document.getElementById('main-wrapper').className = "admin-container";
+                    switchAdminTab('dashboard'); // Default Admin Tab
                     fetchRecords();
                 } else {
                     document.getElementById('officer-section').style.display = 'block';
-                    document.getElementById('officer-bottom-nav').style.display = 'flex'; 
+                    document.getElementById('officer-bottom-nav').style.display = 'flex'; // Show Officer Nav
                     document.getElementById('officer-id-display').innerText = `Analyst ID: ${localStorage.getItem("username")}`;
-                    switchTab('home'); 
+                    switchTab('home'); // Default Officer Tab
                     trackLocationSilently(); 
                     fetchOfficerHistory();
                     updateSilentStatusUI();
@@ -328,17 +366,30 @@
             } else { document.getElementById('auth-section').style.display = 'block'; }
         }
 
+        // TAB LOGIC FOR OFFICER
         function switchTab(tabName) {
             document.getElementById('tab-home').classList.remove('active');
             document.getElementById('tab-history').classList.remove('active');
             document.getElementById('tab-profile').classList.remove('active');
-            
             document.getElementById('nav-home').classList.remove('active');
             document.getElementById('nav-history').classList.remove('active');
             document.getElementById('nav-profile').classList.remove('active');
 
             document.getElementById('tab-' + tabName).classList.add('active');
             document.getElementById('nav-' + tabName).classList.add('active');
+        }
+
+        // TAB LOGIC FOR ADMIN
+        function switchAdminTab(tabName) {
+            document.getElementById('admin-tab-dashboard').classList.remove('active');
+            document.getElementById('admin-tab-analytics').classList.remove('active');
+            document.getElementById('admin-tab-profile').classList.remove('active');
+            document.getElementById('nav-admin-dashboard').classList.remove('active');
+            document.getElementById('nav-admin-analytics').classList.remove('active');
+            document.getElementById('nav-admin-profile').classList.remove('active');
+
+            document.getElementById('admin-tab-' + tabName).classList.add('active');
+            document.getElementById('nav-admin-' + tabName).classList.add('active');
         }
 
         function openCameraFromNav() {
@@ -359,7 +410,6 @@
             const pass = document.getElementById('reg-password').value;
             const secret = document.getElementById('reg-secret').value;
             if(!uid || !pass || !secret) { alert("Please fill all fields!"); return; }
-
             try {
                 const res = await fetch(`${API_URL}/auth/register`, {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -384,7 +434,6 @@
                     body: JSON.stringify({ username: uid, password: pass })
                 });
                 const data = await res.json();
-                
                 if (res.ok) {
                     localStorage.setItem("access_token", data.access_token);
                     localStorage.setItem("username", uid);
@@ -402,7 +451,6 @@
                         loginScreen.style.display = 'none';
                         initApp();
                     }, 5000); 
-
                 } else { alert("Invalid Credentials"); }
             } catch(e) { alert("Network Error. Please try again."); }
         }
@@ -498,8 +546,7 @@
             offlineQueue.push({ officer_id: uid, sample_id: sample, test_type: testType, location_name: loc, gps_location: gps, timestamp: new Date().toISOString() });
             localStorage.setItem('offline_vault', JSON.stringify(offlineQueue));
             alert("✅ Saved securely to device (Offline mode)."); 
-            updateSilentStatusUI();
-            switchTab('history');
+            updateSilentStatusUI(); switchTab('history');
         }
 
         async function chupchapSync() {
@@ -522,9 +569,7 @@
             if(ind) {
                 if (!navigator.onLine || offlineQueue.length > 0) {
                     ind.innerHTML = `<span class="status-dot" style="background:#f59e0b;"></span>Vault Active`;
-                } else {
-                    ind.innerHTML = `<span class="status-dot"></span>System Active`;
-                }
+                } else { ind.innerHTML = `<span class="status-dot"></span>System Active`; }
             }
         }
         window.addEventListener('online', () => { chupchapSync(); updateSilentStatusUI(); });
@@ -534,6 +579,13 @@
             try {
                 const res = await fetch(`${API_URL}/api/records`);
                 allRecordsData = await res.json(); 
+                
+                // Analytics Data Update
+                document.getElementById('stat-total').innerText = allRecordsData.length;
+                let posCount = allRecordsData.filter(r => r.result.includes("Positive")).length;
+                let negCount = allRecordsData.filter(r => !r.result.includes("Positive")).length;
+                document.getElementById('stat-pos').innerText = posCount;
+                document.getElementById('stat-neg').innerText = negCount;
                 
                 const tbody = document.getElementById('records-body');
                 tbody.innerHTML = "";
