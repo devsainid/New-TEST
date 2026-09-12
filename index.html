@@ -21,6 +21,10 @@
         input, select { width: 100%; padding: 12px 15px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 15px; background: #f8fafc; }
         input:focus, select:focus { border-color: #2563eb; outline: none; background: white; }
         
+        /* LOCKED INPUT STYLE */
+        input[readonly] { background-color: #e2e8f0; color: #64748b; cursor: not-allowed; border-color: #cbd5e1; }
+        input[readonly]:focus { border-color: #cbd5e1; outline: none; }
+        
         .header { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: white; padding: 20px; display: flex; justify-content: space-between; align-items: center; border-radius: 16px 16px 0 0; margin-bottom: -10px; z-index: 10; position: relative; }
         
         .camera-btn { display: block; width: 100%; background: #eff6ff; color: #2563eb; border: 2px dashed #3b82f6; padding: 20px; text-align: center; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.3s; }
@@ -114,11 +118,12 @@
                         <input type="text" id="sample-id" required placeholder="e.g. A-12">
                     </div>
                     
-                    <!-- NAYA: LOCATION FETCH BUTTON LOGIC -->
+                    <!-- NAYA: LOCKED LOCATION FIELD -->
                     <div class="input-group">
-                        <label>Location <span style="color:#ef4444; font-size:12px;">(Auto-fetch recommended)</span></label>
+                        <label>Location <span style="color:#ef4444; font-size:12px;">(Tamper-Proof Auto-Fetch)</span></label>
                         <div style="display: flex; gap: 10px;">
-                            <input type="text" id="location-name" required placeholder="Press fetch or enter manually" style="margin-bottom: 0;">
+                            <!-- 'readonly' attribute added to prevent manual typing -->
+                            <input type="text" id="location-name" required placeholder="Press Fetch to lock location..." style="margin-bottom: 0;" readonly>
                             <button type="button" class="btn btn-secondary" onclick="fetchAddress()" id="fetch-loc-btn" style="width: auto; padding: 12px 20px; margin-top: 0;">📍 Fetch</button>
                         </div>
                     </div>
@@ -301,7 +306,6 @@
             }
         }
 
-        // NAYA: REVERSE GEOCODING LOGIC
         async function fetchAddress() {
             const locInput = document.getElementById('location-name');
             const btn = document.getElementById('fetch-loc-btn');
@@ -318,7 +322,6 @@
                 const lat = pos.coords.latitude;
                 const lon = pos.coords.longitude;
                 
-                // Update secret exact location
                 secretLocation = `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
 
                 try {
@@ -381,6 +384,13 @@
             const location_name = document.getElementById('location-name').value;
             const test_type = document.getElementById('test-type').value;
             const file = document.getElementById('test-image').files[0];
+            
+            // SECURITY CHECK: Ensure location was fetched
+            if(!location_name || location_name.includes("Press Fetch")) {
+                alert("⚠️ Please click '📍 Fetch' to lock your secure location before saving.");
+                return;
+            }
+            
             btn.innerText = "⏳ AI Analyzing..."; btn.disabled = true;
 
             if (!navigator.onLine) {
