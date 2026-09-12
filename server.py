@@ -14,27 +14,25 @@ from dotenv import load_dotenv
 import jwt
 
 # ==========================================
-# NAYI LIBRARIES VISION AI KE LIYE
+# VISION AI LIBRARIES
 # ==========================================
 import google.generativeai as genai
-import PIL.Image
+from PIL import Image as PILImage
 
 # ==========================================
 # DB & ENV SETUP
 # ==========================================
 load_dotenv()
-DATABASE_URL = os.getenv("DATABASE_URL")
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./sih_fieldtest.db")
 SECRET_KEY = os.getenv("SECRET_KEY", "my_super_secret_key_for_sih_2026")
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") # APNI API KEY .env MAI DAALEIN
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") 
 ALGORITHM = "HS256"
 
-engine = create_engine(DATABASE_URL)
+connect_args = {"check_same_thread": False} if "sqlite" in DATABASE_URL else {}
+engine = create_engine(DATABASE_URL, connect_args=connect_args)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
-# ==========================================
-# DATABASE MODELS
-# ==========================================
 class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, index=True)
@@ -78,7 +76,7 @@ def log_action(db: Session, user_id: str, action: str):
     db.commit()
 
 # ==========================================
-# HEALTH CHECK & STATUS ROUTES (Fixes 404 Error)
+# HEALTH CHECK & CRON JOB ROUTES
 # ==========================================
 @app.get("/")
 def home():
@@ -89,7 +87,7 @@ def get_app_status():
     return {"success": True, "latest_version": "1.0.0", "force_update": False}
 
 # ==========================================
-# ASLI INTELLIGENCE: GEMINI VISION AI CLASS
+# GEMINI VISION AI CLASS
 # ==========================================
 class RealVisionClassifier:
     def __init__(self):
@@ -100,33 +98,44 @@ class RealVisionClassifier:
             self.model = None
 
     def analyze_kit(self, image_bytes: bytes) -> dict:
-        # Agar API key nahi mili toh mock data de do (server crash se bachane ke liye)
         if not self.model:
             outcomes = ["Positive", "Negative", "Inconclusive"]
             result = random.choices(outcomes, weights=[0.4, 0.4, 0.2])[0]
             return {"success": True, "result": f"{result} (Mock - No API Key)", "confidence": "90%"}
         
         try:
-            image = PIL.Image.open(io.BytesIO(image_bytes))
+            # IMAGE COMPRESSION TO PREVENT RENDER MEMORY CRASH
+            img = PILImage.open(io.BytesIO(image_bytes))
+            if img.mode in ("RGBA", "P"): 
+                img = img.convert("RGB")
+            
+            img.thumbnail((800, 800)) # Compress to save RAM
+            byte_arr = io.BytesIO()
+            img.save(byte_arr, format='JPEG', quality=80)
+            compressed_bytes = byte_arr.getvalue()
+            
+            final_img = PILImage.open(io.BytesIO(compressed_bytes))
+
             prompt = """
-            You are a highly strict forensic AI for a Police app. Analyze the image carefully.
-            Step 1: Check if the image contains a valid presumptive drug testing kit, a chemical testing pouch, or a forensic color reference card.
-            Step 2: If it is just a random image (like a carpet, regular pills, scenery, people, etc.), YOU MUST REPLY EXACTLY WITH: 'REJECT: NO KIT DETECTED'. Do not say anything else.
-            Step 3: If a valid testing kit IS detected, look at the chemical liquid color. If it's a dark reaction (like purple/blue), reply 'Positive - Suspected Substance'. If it's clear or unchanged, reply 'Negative'.
+            You are a strict forensic AI for a Police app. Analyze this image.
+            Step 1: Check if it contains a valid presumptive drug testing kit, chemical testing pouch, or color card.
+            Step 2: If it's a random image (pills, carpet, scenery, etc.), reply exactly: 'REJECT: NO KIT DETECTED'.
+            Step 3: If a valid kit is detected, look at the color reaction. If dark/purple/blue, reply 'Positive - Suspected Substance'. If clear/unchanged, reply 'Negative'.
             """
-            response = self.model.generate_content([prompt, image])
+            response = self.model.generate_content([prompt, final_img])
             ai_text = response.text.strip()
             
+            # REJECTION LOGIC
             if "REJECT" in ai_text.upper():
-                return {"success": False, "error_msg": "System Alert: No forensic testing kit detected in the image. Evidence rejected."}
+                return {"success": False, "error_msg": "System Alert: No forensic testing kit detected. Evidence rejected."}
             
             return {"success": True, "result": ai_text, "confidence": "98.5%"}
             
         except Exception as e:
-            return {"success": False, "error_msg": "AI Processing Error. Please try again."}
+            return {"success": False, "error_msg": "AI Processing Error. Server memory protected."}
 
 # ==========================================
-# AUTHENTICATION
+# AUTHENTICATION ROUTES
 # ==========================================
 class RegisterData(BaseModel):
     username: str
@@ -167,7 +176,7 @@ def login(data: LoginData, db: Session = Depends(get_db)):
     return {"access_token": token, "role": role}
 
 # ==========================================
-# CORE API (UPLOAD & SYNC FORMATTED TO IMAGE)
+# CORE API (UPLOAD & OFFLINE SYNC)
 # ==========================================
 @app.post("/api/upload")
 async def upload_test(
@@ -181,17 +190,15 @@ async def upload_test(
 ):
     image_bytes = await file.read()
     
-    # 1. Image check with Gemini Vision
+    # Send compressed image to Gemini
     vision_ai = RealVisionClassifier()
     ai_analysis = vision_ai.analyze_kit(image_bytes)
     
-    # 2. Agar kit nahi mili toh reject kar do
     if not ai_analysis["success"]:
         return {"success": False, "message": ai_analysis["error_msg"]}
     
-    # 3. Agar kit theek hai, toh Hash banakar database mein save karo
+    # Save valid record
     image_hash = hashlib.sha256(image_bytes).hexdigest()
-
     new_record = TestRecord(
         officer_id=officer_id, sample_id=sample_id, test_type=test_type,
         location_name=location_name, gps_location=gps_location,
