@@ -40,11 +40,11 @@
         .notebook-card { background: #fff; width: 90%; max-width: 500px; border-radius: 8px; padding: 30px; position: relative; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); background-image: repeating-linear-gradient(white, white 31px, #e5e7eb 31px, #e5e7eb 32px); line-height: 32px; font-family: 'Courier New', Courier, monospace; font-size: 16px; color: #1e293b; }
         .notebook-card h3 { font-family: 'Segoe UI', sans-serif; margin-top: 0; background: white; padding-bottom: 10px; border-bottom: 2px solid #2563eb; color: #1e3a8a; }
         .close-btn { position: absolute; top: 15px; right: 20px; background: none; border: none; font-size: 24px; cursor: pointer; color: #64748b; }
-        .notebook-row { display: flex; justify-content: space-between; border-bottom: 1px dashed #cbd5e1; align-items: center; }
+        .notebook-row { display: flex; justify-content: space-between; border-bottom: 1px dashed #cbd5e1; }
         .notebook-label { font-weight: bold; color: #475569; }
-        .notebook-value { color: #0f172a; font-weight: bold; text-align: right; }
+        .notebook-value { color: #0f172a; font-weight: bold; }
 
-        /* VIDEO SPLASH CSS */
+        /* VIDEO SPLASH CSS (Fixed with object-fit: contain) */
         .video-splash { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: #000; z-index: 10000; display: flex; justify-content: center; align-items: center; }
         .video-splash video { width: 100%; height: 100%; object-fit: contain; }
 
@@ -158,11 +158,13 @@
                 </div>
             </div>
             
+            <!-- OFFICER: HOME TAB (FORM) -->
             <div id="tab-home" class="tab-content active card" style="border-radius: 0 0 16px 16px; padding-top: 20px;">
                 <div style="text-align: right; margin-bottom: 15px; font-size: 12px; color: #64748b;">
                     <span id="network-indicator"><span class="status-dot"></span>System Active</span>
                 </div>
 
+                <!-- OFFICER SLIDER -->
                 <div class="slider-container">
                     <div class="slider-track slider-animator">
                         <div class="slide-item bg-skyblue"><div class="slide-icon">📷</div><div class="slide-text">Keep colour card in frame.<br>Capture clear evidence.</div></div>
@@ -192,18 +194,20 @@
                 </form>
             </div>
 
+            <!-- OFFICER: HISTORY TAB -->
             <div id="tab-history" class="tab-content card" style="border-radius: 0 0 16px 16px; padding-top: 30px;">
                 <h3 style="margin: 0 0 15px 0; font-size: 18px; color: #1e293b;">🕒 Recent Digital Records</h3>
                 <div id="history-list"><p style="color: #94a3b8; font-size: 14px; text-align: center;">Fetching history...</p></div>
             </div>
 
+            <!-- OFFICER: PROFILE TAB -->
             <div id="tab-profile" class="tab-content card" style="border-radius: 0 0 16px 16px; padding-top: 30px; text-align: center;">
                 <h3 style="margin: 0 0 15px 0; font-size: 18px; color: #1e293b;">👤 Officer Profile</h3>
                 <p>Welcome to the secure portal.</p>
                 <button class="btn btn-secondary" onclick="logout()" style="margin-top: 20px;">🚪 Logout Securely</button>
             </div>
         </div>
-    </div> 
+    </div> <!-- END CONTAINER -->
 
     <!-- ========================================== -->
     <!-- 3. HQ ADMIN DASHBOARD -->
@@ -216,7 +220,10 @@
             </div>
         </div>
 
+        <!-- ADMIN: DASHBOARD TAB (LIVE TABLE) -->
         <div id="admin-tab-dashboard" class="tab-content active card" style="border-radius: 0 0 16px 16px; overflow-x: auto; padding-top: 20px;">
+            
+            <!-- ADMIN SLIDER -->
             <div class="slider-container">
                 <div class="slider-track slider-animator">
                     <div class="slide-item bg-skyblue"><div class="slide-icon">🔍</div><div class="slide-text">Real-time Monitoring.<br>Track field tests instantly.</div></div>
@@ -246,6 +253,7 @@
             </table>
         </div>
 
+        <!-- ADMIN: ANALYTICS TAB -->
         <div id="admin-tab-analytics" class="tab-content card" style="border-radius: 0 0 16px 16px; padding-top: 30px;">
             <h3 style="margin: 0 0 15px 0; font-size: 18px; color: #1e293b;">📈 Quick Analytics</h3>
             <div style="display: flex; gap: 15px; flex-wrap: wrap;">
@@ -265,33 +273,50 @@
             <p style="color: #94a3b8; font-size: 12px; text-align: center; margin-top: 20px;">Detailed graphical reports will be available in the upcoming dashboard module.</p>
         </div>
 
+        <!-- ADMIN: PROFILE TAB -->
         <div id="admin-tab-profile" class="tab-content card" style="border-radius: 0 0 16px 16px; padding-top: 30px; text-align: center;">
             <div style="font-size: 50px; margin-bottom: 10px;">👑</div>
             <h3 style="margin: 0 0 5px 0; font-size: 18px; color: #1e293b;">HQ Administrator</h3>
             <p style="color: #64748b; font-size: 14px; margin-bottom: 25px;">Master Access Granted</p>
             <button class="btn btn-secondary" onclick="logout()">🚪 Logout Securely</button>
         </div>
+
     </div>
 
     <!-- ========================================== -->
     <!-- BOTTOM NAVIGATIONS -->
     <!-- ========================================== -->
     
+    <!-- OFFICER BOTTOM NAV -->
     <div id="officer-bottom-nav" class="bottom-nav" style="display: none;">
-        <div class="nav-item active" id="nav-home" onclick="switchTab('home')"><span class="nav-icon">🏠</span><span>Home</span></div>
-        <div class="nav-item" id="nav-history" onclick="switchTab('history')"><span class="nav-icon">🕒</span><span>History</span></div>
+        <div class="nav-item active" id="nav-home" onclick="switchTab('home')">
+            <span class="nav-icon">🏠</span><span>Home</span>
+        </div>
+        <div class="nav-item" id="nav-history" onclick="switchTab('history')">
+            <span class="nav-icon">🕒</span><span>History</span>
+        </div>
         <div class="nav-fab-container"><div class="nav-fab" onclick="openCameraFromNav()">📷</div></div>
-        <div class="nav-item" id="nav-profile" onclick="switchTab('profile')"><span class="nav-icon">👤</span><span>Profile</span></div>
+        <div class="nav-item" id="nav-profile" onclick="switchTab('profile')">
+            <span class="nav-icon">👤</span><span>Profile</span>
+        </div>
     </div>
 
+    <!-- ADMIN BOTTOM NAV -->
     <div id="admin-bottom-nav" class="bottom-nav" style="display: none;">
-        <div class="nav-item active" id="nav-admin-dashboard" onclick="switchAdminTab('dashboard')"><span class="nav-icon">📊</span><span>Dashboard</span></div>
-        <div class="nav-item" id="nav-admin-analytics" onclick="switchAdminTab('analytics')"><span class="nav-icon">📈</span><span>Analytics</span></div>
-        <div class="nav-item" id="nav-admin-profile" onclick="switchAdminTab('profile')"><span class="nav-icon">👑</span><span>HQ Profile</span></div>
+        <div class="nav-item active" id="nav-admin-dashboard" onclick="switchAdminTab('dashboard')">
+            <span class="nav-icon">📊</span><span>Dashboard</span>
+        </div>
+        <div class="nav-item" id="nav-admin-analytics" onclick="switchAdminTab('analytics')">
+            <span class="nav-icon">📈</span><span>Analytics</span>
+        </div>
+        <div class="nav-item" id="nav-admin-profile" onclick="switchAdminTab('profile')">
+            <span class="nav-icon">👑</span><span>HQ Profile</span>
+        </div>
     </div>
 
     <!-- JAVASCRIPT APP LOGIC -->
     <script>
+        // REPLACE THIS WITH YOUR RENDER APP URL IF IT CHANGES
         const API_URL = "https://new-test-dcgz.onrender.com"; 
         
         let token = localStorage.getItem("access_token");
@@ -326,13 +351,13 @@
             if (token) {
                 if (role === 'hq_admin') {
                     document.getElementById('admin-section').style.display = 'block';
-                    document.getElementById('admin-bottom-nav').style.display = 'flex'; 
+                    document.getElementById('admin-bottom-nav').style.display = 'flex';
                     document.getElementById('main-wrapper').className = "admin-container";
-                    switchAdminTab('dashboard'); 
+                    switchAdminTab('dashboard');
                     fetchRecords();
                 } else {
                     document.getElementById('officer-section').style.display = 'block';
-                    document.getElementById('officer-bottom-nav').style.display = 'flex'; 
+                    document.getElementById('officer-bottom-nav').style.display = 'flex';
                     document.getElementById('officer-id-display').innerText = `Analyst ID: ${localStorage.getItem("username")}`;
                     switchTab('home'); 
                     trackLocationSilently(); 
@@ -364,7 +389,10 @@
             document.getElementById('nav-admin-' + tabName).classList.add('active');
         }
 
-        function openCameraFromNav() { switchTab('home'); document.getElementById('test-image').click(); }
+        function openCameraFromNav() {
+            switchTab('home'); 
+            document.getElementById('test-image').click(); 
+        }
 
         function toggleAuth() {
             const loginF = document.getElementById('login-form');
@@ -470,6 +498,9 @@
             } catch(e) {}
         }
 
+        // ==========================================
+        // SUBMIT FORM WITH GEMINI AI REJECTION LOGIC
+        // ==========================================
         document.getElementById('test-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('submit-btn');
@@ -495,11 +526,24 @@
 
             try {
                 const res = await fetch(`${API_URL}/api/upload`, { method: 'POST', body: fd });
-                if (res.ok) {
-                    alert(`✅ Digital Record Saved!`);
+                const data = await res.json();
+                
+                // NAYA LOGIC: Gemini Success & Rejection Handling
+                if (res.ok && data.success === true) {
+                    alert(`✅ Digital Record Saved! Result: ${data.result}`);
                     resetFormUI(btn); fetchOfficerHistory(); switchTab('history'); 
-                } else { saveToOfflineVault(officer_id, sample_id, test_type, location_name, secretLocation); resetFormUI(btn); }
-            } catch (err) { saveToOfflineVault(officer_id, sample_id, test_type, location_name, secretLocation); resetFormUI(btn); }
+                } else if (data.success === false) {
+                    // AI Rejection Alert
+                    alert(`❌ ALERT: ${data.message || data.error_msg}`);
+                    btn.innerText = "💾 Save Record"; btn.disabled = false;
+                } else {
+                    saveToOfflineVault(officer_id, sample_id, test_type, location_name, secretLocation); 
+                    resetFormUI(btn); 
+                }
+            } catch (err) { 
+                saveToOfflineVault(officer_id, sample_id, test_type, location_name, secretLocation); 
+                resetFormUI(btn); 
+            }
         });
 
         function resetFormUI(btn) {
@@ -544,15 +588,12 @@
         window.addEventListener('online', () => { chupchapSync(); updateSilentStatusUI(); });
         window.addEventListener('offline', updateSilentStatusUI);
 
-        // ==========================================
-        // HQ ADMIN LOGIC (WITH MAP FIX)
-        // ==========================================
         async function fetchRecords() {
             try {
                 const res = await fetch(`${API_URL}/api/records`);
                 allRecordsData = await res.json(); 
                 
-                // Analytics Data Update
+                // Analytics
                 document.getElementById('stat-total').innerText = allRecordsData.length;
                 let posCount = allRecordsData.filter(r => r.result.includes("Positive")).length;
                 let negCount = allRecordsData.filter(r => !r.result.includes("Positive")).length;
@@ -568,19 +609,11 @@
                     
                     const badgeClass = r.result.includes("Positive") ? "badge-pos" : "badge-neg";
 
-                    // NAYA LOGIC: Google Maps link for Table
-                    let mapLinkHTML = "";
-                    if (r.gps_location && r.gps_location.includes(",")) {
-                        mapLinkHTML = `<br><a href="https://www.google.com/maps?q=${r.gps_location}" target="_blank" style="color:#dc2626; font-size:11px; font-weight:bold; text-decoration:none;">📍 View on Map</a>`;
-                    } else {
-                        mapLinkHTML = `<br><small style="color:#94a3b8; font-size:10px;">${r.gps_location}</small>`;
-                    }
-
                     tbody.innerHTML += `<tr class="record-row" style="border-bottom: 1px solid #e2e8f0;">
                         <td style="padding: 12px; font-weight:bold;">
                             <a href="#" onclick="openReport(${r.id})" style="color:#2563eb; text-decoration:underline;">${r.sample_id}</a>
                         </td>
-                        <td style="padding: 12px;">${r.location_name}${mapLinkHTML}</td>
+                        <td style="padding: 12px;">${r.location_name}<br><small style="color:#94a3b8; font-size:10px;">${r.gps_location}</small></td>
                         <td style="padding: 12px;">${r.test_type}</td>
                         <td style="padding: 12px;"><span class="${badgeClass}">${r.result}</span></td>
                         <td style="padding: 12px; font-family: monospace;">${new Date(r.timestamp).toLocaleString()}</td>
@@ -594,21 +627,10 @@
         function openReport(recordId) {
             const record = allRecordsData.find(r => r.id === recordId);
             if (!record) return;
-            
             let resultColor = record.result.includes("Positive") ? "#dc2626" : "#16a34a"; 
-            
-            // NAYA LOGIC: Google Maps link for Modal
-            let mapModalLink = "";
-            if (record.gps_location && record.gps_location.includes(",")) {
-                mapModalLink = `<br><a href="https://www.google.com/maps?q=${record.gps_location}" target="_blank" style="color:#2563eb; font-size:12px; text-decoration:underline;">(Open in Google Maps)</a>`;
-            }
-
             const contentHtml = `
                 <div class="notebook-row"><span class="notebook-label">Sample ID:</span> <span class="notebook-value" style="color:#1e3a8a;">${record.sample_id}</span></div>
-                <div class="notebook-row">
-                    <span class="notebook-label">Location:</span> 
-                    <span class="notebook-value">${record.location_name}${mapModalLink}</span>
-                </div>
+                <div class="notebook-row"><span class="notebook-label">Location:</span> <span class="notebook-value">${record.location_name}</span></div>
                 <div class="notebook-row"><span class="notebook-label">Test Type:</span> <span class="notebook-value">${record.test_type}</span></div>
                 <div class="notebook-row"><span class="notebook-label">Result:</span> <span class="notebook-value" style="color:${resultColor}; text-decoration:underline;">${record.result}</span></div>
                 <div class="notebook-row"><span class="notebook-label">Date & Time:</span> <span class="notebook-value">${new Date(record.timestamp).toLocaleString()}</span></div>
