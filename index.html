@@ -6,7 +6,7 @@
     <title>FieldTest SIH 2026</title>
     <style>
         * { box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
-        body { margin: 0; padding: 0; background-color: #f1f5f9; color: #334155; }
+        body { margin: 0; padding: 0; background-color: #f1f5f9; color: #334155; overflow-x: hidden; }
         .container { max-width: 600px; margin: 0 auto; padding: 15px; }
         .admin-container { max-width: 1100px; margin: 0 auto; padding: 15px; } 
         
@@ -34,27 +34,37 @@
         
         #officer-section, #admin-section, #register-form { display: none; }
 
-        /* NAYA CSS: NOTEBOOK MODAL KE LIYE */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.8); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
         .notebook-card { background: #fff; width: 90%; max-width: 500px; border-radius: 8px; padding: 30px; position: relative; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); background-image: repeating-linear-gradient(white, white 31px, #e5e7eb 31px, #e5e7eb 32px); line-height: 32px; font-family: 'Courier New', Courier, monospace; font-size: 16px; color: #1e293b; }
         .notebook-card h3 { font-family: 'Segoe UI', sans-serif; margin-top: 0; background: white; padding-bottom: 10px; border-bottom: 2px solid #2563eb; color: #1e3a8a; }
-        .close-btn { position: absolute; top: 15px; right: 20px; background: none; border: none; font-size: 24px; cursor: pointer; color: #64748b; font-family: sans-serif; }
-        .close-btn:hover { color: #dc2626; }
+        .close-btn { position: absolute; top: 15px; right: 20px; background: none; border: none; font-size: 24px; cursor: pointer; color: #64748b; }
         .notebook-row { display: flex; justify-content: space-between; border-bottom: 1px dashed #cbd5e1; }
         .notebook-label { font-weight: bold; color: #475569; }
         .notebook-value { color: #0f172a; font-weight: bold; }
+
+        /* NAYA: VIDEO SCREENS CSS */
+        .video-splash { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: #000; z-index: 10000; display: flex; justify-content: center; align-items: center; }
+        .video-splash video { width: 100%; height: 100%; object-fit: cover; }
     </style>
 </head>
 <body>
 
-    <!-- NAYA: NOTEBOOK STYLE REPORT MODAL -->
+    <!-- 🎬 NAYA: APP KHULTE HI 2 SECOND WALA INTRO VIDEO (Muted required for autoplay) -->
+    <div id="intro-screen" class="video-splash">
+        <video id="intro-vid" src="intro.mp4" autoplay muted playsinline></video>
+    </div>
+
+    <!-- 🎬 NAYA: LOGIN SUCCESS HONE PAR 5 SECOND WALA VIDEO (Sound allowed) -->
+    <div id="login-video-screen" class="video-splash" style="display: none;">
+        <video id="login-vid" src="login.mp4" playsinline></video>
+    </div>
+
+    <!-- NOTEBOOK STYLE REPORT MODAL -->
     <div id="report-modal" class="modal-overlay">
         <div class="notebook-card">
             <button class="close-btn" onclick="closeModal()">✖</button>
             <h3>📄 Digital Evidence Report</h3>
-            <div id="modal-content">
-                <!-- Data Javascript se yahan aayega -->
-            </div>
+            <div id="modal-content"></div>
             <div style="margin-top: 20px; background: white; line-height: 1.5; font-family: 'Segoe UI', sans-serif;">
                 <p style="font-size: 12px; color: #64748b; margin-bottom: 0;"><strong>Digital Integrity Hash (SHA-256):</strong></p>
                 <p id="modal-hash" style="font-size: 11px; color: #2563eb; word-break: break-all; margin-top: 2px; background: #eff6ff; padding: 5px; border-radius: 4px;"></p>
@@ -179,9 +189,14 @@
         let role = localStorage.getItem("role");
         let offlineQueue = JSON.parse(localStorage.getItem('offline_vault')) || [];
         let secretLocation = "Unknown GPS";
-        
-        // NAYA: Global variable taaki Modal mein data dikha sakein
         let allRecordsData = [];
+
+        // NAYA LOGIC: HATAO INTRO VIDEO KO 2 SECOND BAAD
+        window.onload = function() {
+            setTimeout(() => {
+                document.getElementById('intro-screen').style.display = 'none';
+            }, 2500); // Thoda buffer de diya 2.5 seconds ka
+        };
 
         function initApp() {
             document.getElementById('auth-section').style.display = 'none';
@@ -244,12 +259,27 @@
                     body: JSON.stringify({ username: uid, password: pass })
                 });
                 const data = await res.json();
+                
                 if (res.ok) {
                     localStorage.setItem("access_token", data.access_token);
                     localStorage.setItem("username", uid);
                     localStorage.setItem("role", data.role);
                     token = data.access_token; role = data.role;
-                    initApp();
+                    
+                    // NAYA LOGIC: LOGIN HOTE HI 5 SECONDS KI VIDEO PLAY KARO
+                    document.getElementById('auth-section').style.display = 'none';
+                    const loginScreen = document.getElementById('login-video-screen');
+                    const loginVideo = document.getElementById('login-vid');
+                    
+                    loginScreen.style.display = 'flex';
+                    loginVideo.play();
+
+                    // 5 Seconds baad video hatao aur dashboard dikhao
+                    setTimeout(() => {
+                        loginScreen.style.display = 'none';
+                        initApp();
+                    }, 5000); 
+
                 } else { alert("Invalid Credentials"); }
             } catch(e) { alert("Network Error. Please try again."); }
         }
@@ -376,14 +406,10 @@
         window.addEventListener('online', () => { chupchapSync(); updateSilentStatusUI(); });
         window.addEventListener('offline', updateSilentStatusUI);
 
-
-        // ==========================================
-        // HQ ADMIN LOGIC & NOTEBOOK MODAL
-        // ==========================================
         async function fetchRecords() {
             try {
                 const res = await fetch(`${API_URL}/api/records`);
-                allRecordsData = await res.json(); // Data save kar liya Modal ke liye
+                allRecordsData = await res.json(); 
                 
                 const tbody = document.getElementById('records-body');
                 tbody.innerHTML = "";
@@ -394,7 +420,6 @@
                     
                     const badgeClass = r.result.includes("Positive") ? "badge-pos" : "badge-neg";
 
-                    // Sample ID ab clickable (Blue Link) ban gaya hai
                     tbody.innerHTML += `<tr class="record-row" style="border-bottom: 1px solid #e2e8f0;">
                         <td style="padding: 12px; font-weight:bold;">
                             <a href="#" onclick="openReport(${r.id})" style="color:#2563eb; text-decoration:underline;">${r.sample_id}</a>
@@ -410,12 +435,11 @@
             } catch(e) {}
         }
 
-        // NAYA FUNCTION: Notebook Jaisa Modal Kholne ke liye
         function openReport(recordId) {
             const record = allRecordsData.find(r => r.id === recordId);
             if (!record) return;
 
-            let resultColor = record.result.includes("Positive") ? "#dc2626" : "#16a34a"; // Red for pos, Green for neg
+            let resultColor = record.result.includes("Positive") ? "#dc2626" : "#16a34a"; 
 
             const contentHtml = `
                 <div class="notebook-row"><span class="notebook-label">Sample ID:</span> <span class="notebook-value" style="color:#1e3a8a;">${record.sample_id}</span></div>
@@ -431,7 +455,6 @@
             document.getElementById('report-modal').style.display = 'flex';
         }
 
-        // Modal Band Karne ka function
         function closeModal() {
             document.getElementById('report-modal').style.display = 'none';
         }
