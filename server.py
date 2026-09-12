@@ -13,45 +13,21 @@ from dotenv import load_dotenv
 import jwt
 
 # ==========================================
-# ADVANCED AI / ML SERVICES (FOR SIH)
+# AI / ML SERVICES
 # ==========================================
 class ImagePipeline:
     def __init__(self, image_bytes: bytes, filename: str):
         self.image_bytes = image_bytes
         self.filename = filename
-
     def run_preprocessing_workflow(self):
-        # NAYA FEATURE: Image Quality Check (Retake Logic)
-        # Demo ke liye: 20% chance hai ki photo reject ho jaye (blur ya bad light)
-        quality_score = random.randint(1, 100)
-        if quality_score <= 20:
-            return {
-                "success": False, 
-                "error": "POOR_QUALITY",
-                "message": "Image is blurry or lighting is inadequate. Please RETAKE the photo."
-            }
-            
-        return {
-            "success": True, 
-            "operations_applied": ["auto_exposure_balance", "white_balance_correction", "roi_extraction"],
-            "message": "Image lighting auto-corrected and optimized for AI analysis."
-        }
+        return {"success": True, "message": "CV Pipeline passed.", "roi_found": True}
 
 class MockClassifier:
-    def classify(self, image_bytes: bytes, test_type: str) -> dict:
-        # NAYA SIH RULE COMPLIANT AI LOGIC
-        # Ab AI drug ka naam nahi lega, sirf color-card analysis categories dega
-        outcomes = [
-            {"result": "Positive (Presumptive)", "conf": "98.2%"},
-            {"result": "Negative", "conf": "99.1%"},
-            {"result": "Inconclusive", "conf": "45.0%"},
-            {"result": "Faint", "conf": "75.5%"},
-            {"result": "Unexpected", "conf": "60.2%"}
-        ]
-        
-        # Demo ke liye random result
-        selected = random.choices(outcomes, weights=[0.35, 0.35, 0.1, 0.1, 0.1])[0]
-        return {"result": selected["result"], "confidence": selected["conf"]}
+    def classify(self, image_bytes: bytes, filename: str) -> dict:
+        outcomes = ["Positive", "Negative", "Inconclusive"]
+        result = random.choices(outcomes, weights=[0.4, 0.4, 0.2])[0]
+        return {"result": result, "confidence": "95.5%", "model_type": "Simulated"}
+
 # ==========================================
 # DB & ENV SETUP
 # ==========================================
@@ -107,6 +83,17 @@ def log_action(db: Session, user_id: str, action: str):
     db.commit()
 
 # ==========================================
+# HEALTH CHECK & STATUS ROUTES (Fixes 404 Error)
+# ==========================================
+@app.get("/")
+def home():
+    return {"message": "FieldTest API is running perfectly! 🚀", "status": "Active"}
+
+@app.get("/app-status")
+def get_app_status():
+    return {"success": True, "latest_version": "1.0.0", "force_update": False}
+
+# ==========================================
 # AUTHENTICATION
 # ==========================================
 class RegisterData(BaseModel):
@@ -139,34 +126,32 @@ def login(data: LoginData, db: Session = Depends(get_db)):
     elif data.username == "OFF001" and data.password == "1234": role = "field_officer"
     elif data.username == "ADMIN01" and data.password == "hq1234": role = "hq_admin"
     else:
+        log_action(db, data.username, "Failed login attempt")
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
     payload = {"sub": data.username, "role": role, "exp": datetime.now(timezone.utc) + timedelta(hours=24)}
     token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+    log_action(db, data.username, f"Logged in as {role}")
     return {"access_token": token, "role": role}
 
 # ==========================================
-# CORE API (UPLOAD & RETAKE LOGIC)
+# CORE API (UPLOAD & SYNC FORMATTED TO IMAGE)
 # ==========================================
 @app.post("/api/upload")
 async def upload_test(
-    officer_id: str = Form(...), sample_id: str = Form(...), test_type: str = Form(...),
-    location_name: str = Form(...), gps_location: str = Form(...), file: UploadFile = File(...),
+    officer_id: str = Form(...), 
+    sample_id: str = Form(...),
+    test_type: str = Form(...),
+    location_name: str = Form(...),
+    gps_location: str = Form(...), 
+    file: UploadFile = File(...),
     db: Session = Depends(get_db)
 ):
     image_bytes = await file.read()
     image_hash = hashlib.sha256(image_bytes).hexdigest()
 
-    # NAYA: Check Image Quality Before Saving
-    pipeline = ImagePipeline(image_bytes, file.filename)
-    pipeline_result = pipeline.run_preprocessing_workflow()
-    
-    if not pipeline_result["success"]:
-        # Agar quality fail hui, toh error bhej do (Database mein save mat karo)
-        return {"success": False, "error": pipeline_result["error"], "message": pipeline_result["message"]}
-
-    # Agar pass hui toh classification karo aur save karo
-    ml_result = MockClassifier().classify(image_bytes, test_type)
+    ImagePipeline(image_bytes, file.filename).run_preprocessing_workflow()
+    ml_result = MockClassifier().classify(image_bytes, file.filename)
 
     new_record = TestRecord(
         officer_id=officer_id, sample_id=sample_id, test_type=test_type,
@@ -176,7 +161,7 @@ async def upload_test(
     db.add(new_record)
     db.commit()
     db.refresh(new_record)
-    return {"success": True, "result": new_record.result, "confidence": new_record.confidence}
+    return {"success": True, "result": new_record.result}
 
 class OfflineTest(BaseModel):
     officer_id: str
