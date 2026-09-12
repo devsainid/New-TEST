@@ -48,17 +48,14 @@
 </head>
 <body>
 
-    <!-- APP KHULTE HI INTRO VIDEO -->
     <div id="intro-screen" class="video-splash">
         <video id="intro-vid" src="intro.mp4" autoplay muted playsinline></video>
     </div>
 
-    <!-- LOGIN SUCCESS PAR 5 SECOND WALA VIDEO -->
     <div id="login-video-screen" class="video-splash" style="display: none;">
         <video id="login-vid" src="login.mp4" playsinline></video>
     </div>
 
-    <!-- NOTEBOOK STYLE REPORT MODAL -->
     <div id="report-modal" class="modal-overlay">
         <div class="notebook-card">
             <button class="close-btn" onclick="closeModal()">✖</button>
@@ -116,10 +113,16 @@
                         <label>Sample ID</label>
                         <input type="text" id="sample-id" required placeholder="e.g. A-12">
                     </div>
+                    
+                    <!-- NAYA: LOCATION FETCH BUTTON LOGIC -->
                     <div class="input-group">
-                        <label>Location</label>
-                        <input type="text" id="location-name" required placeholder="e.g. Site - Warehouse">
+                        <label>Location <span style="color:#ef4444; font-size:12px;">(Auto-fetch recommended)</span></label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" id="location-name" required placeholder="Press fetch or enter manually" style="margin-bottom: 0;">
+                            <button type="button" class="btn btn-secondary" onclick="fetchAddress()" id="fetch-loc-btn" style="width: auto; padding: 12px 20px; margin-top: 0;">📍 Fetch</button>
+                        </div>
                     </div>
+
                     <div class="input-group">
                         <label>Test Type</label>
                         <select id="test-type">
@@ -129,7 +132,7 @@
                         </select>
                     </div>
                     
-                   <div class="input-group">
+                    <div class="input-group">
                         <label>Capture Evidence <span style="color:#ef4444; font-size:12px;">(Keep reference colour card in-frame)</span></label>
                         <label for="test-image" class="camera-btn" id="camera-btn-label">
                             <i>📸</i> <span id="camera-text">Tap to Open Camera</span>
@@ -298,6 +301,53 @@
             }
         }
 
+        // NAYA: REVERSE GEOCODING LOGIC
+        async function fetchAddress() {
+            const locInput = document.getElementById('location-name');
+            const btn = document.getElementById('fetch-loc-btn');
+            
+            if (!navigator.geolocation) {
+                alert("Geolocation is not supported by your device.");
+                return;
+            }
+
+            btn.innerText = "⏳...";
+            btn.disabled = true;
+
+            navigator.geolocation.getCurrentPosition(async (pos) => {
+                const lat = pos.coords.latitude;
+                const lon = pos.coords.longitude;
+                
+                // Update secret exact location
+                secretLocation = `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+
+                try {
+                    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
+                    const data = await res.json();
+                    
+                    if(data && data.address) {
+                        const ad = data.address;
+                        const city = ad.city || ad.town || ad.village || "Unknown Area";
+                        const district = ad.state_district || ad.county || "Unknown District";
+                        const state = ad.state || "Unknown State";
+                        const pincode = ad.postcode || "";
+                        
+                        locInput.value = `${city}, ${district}, ${state} - ${pincode}`;
+                    } else {
+                        locInput.value = `Lat: ${lat.toFixed(4)}, Lon: ${lon.toFixed(4)}`;
+                    }
+                } catch(e) {
+                    locInput.value = `Lat: ${lat.toFixed(4)}, Lon: ${lon.toFixed(4)}`;
+                }
+                btn.innerText = "📍 Fetch";
+                btn.disabled = false;
+            }, (err) => {
+                alert("Please enable GPS/Location access!");
+                btn.innerText = "📍 Fetch";
+                btn.disabled = false;
+            }, { enableHighAccuracy: true });
+        }
+
         async function fetchOfficerHistory() {
             try {
                 const res = await fetch(`${API_URL}/api/records`);
@@ -350,22 +400,17 @@
                 const res = await fetch(`${API_URL}/api/upload`, { method: 'POST', body: fd });
                 const data = await res.json();
                 
-                // NAYA: RETAKE PHOTO LOGIC
                 if (res.ok && data.success === true) {
                     alert(`✅ Record Saved!\nAI Result: ${data.result}\nConfidence: ${data.confidence}`);
                     resetFormUI(btn); fetchOfficerHistory(); 
                 } 
                 else if (res.ok && data.success === false && data.error === "POOR_QUALITY") {
-                    // Agar backend ne photo reject kar di
                     alert(`⚠️ AI QUALITY CHECK FAILED:\n${data.message}`);
-                    
-                    // Form ko waise hi rakho, sirf photo hatakar camera button laal kardo
                     document.getElementById('test-image').value = "";
                     document.getElementById('camera-text').innerText = "❌ Please Retake Photo";
                     document.getElementById('camera-btn-label').style.background = '#fef2f2';
                     document.getElementById('camera-btn-label').style.borderColor = '#dc2626';
                     document.getElementById('camera-btn-label').style.color = '#dc2626';
-                    
                     btn.innerText = "💾 Save Record"; btn.disabled = false;
                 }
                 else { 
@@ -419,7 +464,6 @@
         window.addEventListener('online', () => { chupchapSync(); updateSilentStatusUI(); });
         window.addEventListener('offline', updateSilentStatusUI);
 
-        // HQ ADMIN LOGIC & MODAL
         async function fetchRecords() {
             try {
                 const res = await fetch(`${API_URL}/api/records`);
@@ -434,7 +478,6 @@
                     
                     const badgeClass = r.result.includes("Positive") ? "badge-pos" : "badge-neg";
                     
-                    // Detailed result if confidence exists
                     const resultText = r.confidence !== "N/A" ? `${r.result} <br><small style="color:#64748b;">Conf: ${r.confidence}</small>` : r.result;
 
                     tbody.innerHTML += `<tr class="record-row" style="border-bottom: 1px solid #e2e8f0;">
