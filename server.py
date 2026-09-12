@@ -23,7 +23,7 @@ from PIL import Image as PILImage
 # DB & ENV SETUP
 # ==========================================
 load_dotenv()
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./sih_fieldtest.db")
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./fresh_sih_db_v3.db")
 SECRET_KEY = os.getenv("SECRET_KEY", "my_super_secret_key_for_sih_2026")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") 
 ALGORITHM = "HS256"
