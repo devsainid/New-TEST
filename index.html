@@ -65,31 +65,42 @@
             #admin-section td:nth-of-type(7)::before { content: "Hash (Ver):"; }
         }
 
-        /* NAYA: APP STYLE BOTTOM NAVIGATION BAR */
+        /* BOTTOM NAVIGATION BAR */
         .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: #ffffff; box-shadow: 0 -4px 10px rgba(0,0,0,0.05); display: flex; justify-content: space-around; align-items: center; padding: 10px 0; z-index: 1000; border-top: 1px solid #e2e8f0; }
         .nav-item { display: flex; flex-direction: column; align-items: center; color: #64748b; font-size: 12px; font-weight: 600; cursor: pointer; transition: color 0.3s; flex: 1; }
         .nav-item.active { color: #2563eb; }
         .nav-icon { font-size: 22px; margin-bottom: 3px; }
-        
-        /* Floating Center Camera Button */
         .nav-fab-container { position: relative; flex: 1; display: flex; justify-content: center; }
         .nav-fab { position: absolute; top: -30px; width: 60px; height: 60px; background: linear-gradient(135deg, #2563eb, #1e3a8a); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 24px; color: white; box-shadow: 0 4px 10px rgba(37,99,235,0.4); cursor: pointer; border: 4px solid #f1f5f9; }
-        
-        /* Officer Tabs */
         .tab-content { display: none; }
         .tab-content.active { display: block; }
+
+        /* NAYA: AUTO-SLIDING BANNER CSS */
+        .slider-container { width: 100%; overflow: hidden; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .slider-track { display: flex; width: 400%; transition: transform 0.5s ease-in-out; }
+        .slide-item { width: 25%; padding: 15px; display: flex; align-items: center; justify-content: flex-start; gap: 15px; color: black; }
+        .slide-icon { font-size: 24px; background: white; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .slide-text { font-size: 13px; font-weight: 600; line-height: 1.4; }
+        /* 4 Colors as Requested */
+        .bg-skyblue { background: #e0f2fe; }
+        .bg-green { background: #dcfce3; }
+        .bg-yellow { background: #fef08a; }
+        .bg-purple { background: #f3e8ff; }
     </style>
 </head>
 <body>
 
+    <!-- INTRO SPLASH VIDEO -->
     <div id="intro-screen" class="video-splash">
         <video id="intro-vid" src="intro.mp4" autoplay muted playsinline></video>
     </div>
 
+    <!-- LOGIN SUCCESS VIDEO -->
     <div id="login-video-screen" class="video-splash" style="display: none;">
         <video id="login-vid" src="login.mp4" playsinline></video>
     </div>
 
+    <!-- NOTEBOOK MODAL (ADMIN) -->
     <div id="report-modal" class="modal-overlay">
         <div class="notebook-card">
             <button class="close-btn" onclick="closeModal()">✖</button>
@@ -104,6 +115,7 @@
 
     <div id="main-wrapper" class="container">
         
+        <!-- AUTHENTICATION SCREENS -->
         <div id="auth-section" class="card" style="margin-top: 10vh; text-align: center; padding: 40px 25px;">
             <div style="background: #e0e7ff; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px auto;">
                 <span style="font-size: 30px;">🛡️</span>
@@ -127,6 +139,7 @@
             </div>
         </div>
 
+        <!-- OFFICER APP SCREEN -->
         <div id="officer-section">
             <div class="header">
                 <div>
@@ -135,10 +148,38 @@
                 </div>
             </div>
             
-            <div id="tab-home" class="tab-content active card" style="border-radius: 0 0 16px 16px; padding-top: 30px;">
+            <!-- HOME TAB (FORM) -->
+            <div id="tab-home" class="tab-content active card" style="border-radius: 0 0 16px 16px; padding-top: 20px;">
                 <div style="text-align: right; margin-bottom: 15px; font-size: 12px; color: #64748b;">
                     <span id="network-indicator"><span class="status-dot"></span>System Active</span>
                 </div>
+
+                <!-- NAYA: AUTO-SLIDING BANNER (4 Messages) -->
+                <div class="slider-container">
+                    <div class="slider-track" id="slider-track">
+                        <!-- Message 1: Skyblue -->
+                        <div class="slide-item bg-skyblue">
+                            <div class="slide-icon">📷</div>
+                            <div class="slide-text">Keep colour card in frame.<br>Capture clear evidence.</div>
+                        </div>
+                        <!-- Message 2: Green -->
+                        <div class="slide-item bg-green">
+                            <div class="slide-icon">📶</div>
+                            <div class="slide-text">Offline Vault is Active.<br>Data saves securely without net.</div>
+                        </div>
+                        <!-- Message 3: Yellow -->
+                        <div class="slide-item bg-yellow">
+                            <div class="slide-icon">📍</div>
+                            <div class="slide-text">Stealth GPS Tagging.<br>Location is fetched secretly.</div>
+                        </div>
+                        <!-- Message 4: Purple -->
+                        <div class="slide-item bg-purple">
+                            <div class="slide-icon">🛡️</div>
+                            <div class="slide-text">Zero-Trust Security.<br>End-to-end encrypted records.</div>
+                        </div>
+                    </div>
+                </div>
+                <!-- SLIDER KHATAM -->
                 
                 <form id="test-form">
                     <div class="input-group">
@@ -170,11 +211,13 @@
                 </form>
             </div>
 
+            <!-- HISTORY TAB -->
             <div id="tab-history" class="tab-content card" style="border-radius: 0 0 16px 16px; padding-top: 30px;">
                 <h3 style="margin: 0 0 15px 0; font-size: 18px; color: #1e293b;">🕒 Recent Digital Records</h3>
                 <div id="history-list"><p style="color: #94a3b8; font-size: 14px; text-align: center;">Fetching history...</p></div>
             </div>
 
+            <!-- PROFILE TAB -->
             <div id="tab-profile" class="tab-content card" style="border-radius: 0 0 16px 16px; padding-top: 30px; text-align: center;">
                 <h3 style="margin: 0 0 15px 0; font-size: 18px; color: #1e293b;">👤 Officer Profile</h3>
                 <p>Welcome to the secure portal.</p>
@@ -184,6 +227,7 @@
         </div>
     </div>
 
+    <!-- HQ ADMIN DASHBOARD -->
     <div id="admin-section" class="admin-container">
         <div class="header" style="background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%);">
             <div>
@@ -214,6 +258,7 @@
         </div>
     </div>
 
+    <!-- BOTTOM NAVIGATION (Only for Officer) -->
     <div id="officer-bottom-nav" class="bottom-nav" style="display: none;">
         <div class="nav-item active" id="nav-home" onclick="switchTab('home')">
             <span class="nav-icon">🏠</span>
@@ -223,13 +268,9 @@
             <span class="nav-icon">🕒</span>
             <span>History</span>
         </div>
-        
         <div class="nav-fab-container">
-            <div class="nav-fab" onclick="openCameraFromNav()">
-                📷
-            </div>
+            <div class="nav-fab" onclick="openCameraFromNav()">📷</div>
         </div>
-        
         <div class="nav-item" id="nav-profile" onclick="switchTab('profile')">
             <span class="nav-icon">👤</span>
             <span>Profile</span>
@@ -237,6 +278,7 @@
     </div>
 
 
+    <!-- JAVASCRIPT APP LOGIC -->
     <script>
         const API_URL = "https://new-test-dcgz.onrender.com"; 
         
@@ -246,7 +288,18 @@
         let secretLocation = "Unknown GPS";
         let allRecordsData = [];
 
-        // Intro Video Logic
+        // NAYA: SLIDER LOGIC (Har 3 second mein slide change)
+        let currentSlide = 0;
+        const totalSlides = 4;
+        function autoSlideBanner() {
+            const track = document.getElementById('slider-track');
+            if(track) {
+                currentSlide = (currentSlide + 1) % totalSlides;
+                track.style.transform = `translateX(-${currentSlide * 25}%)`;
+            }
+        }
+        setInterval(autoSlideBanner, 3000); // 3000ms = 3 Seconds
+
         window.onload = function() {
             setTimeout(() => { document.getElementById('intro-screen').style.display = 'none'; }, 2500); 
         };
@@ -265,9 +318,9 @@
                     fetchRecords();
                 } else {
                     document.getElementById('officer-section').style.display = 'block';
-                    document.getElementById('officer-bottom-nav').style.display = 'flex'; // Show Bottom Nav
+                    document.getElementById('officer-bottom-nav').style.display = 'flex'; 
                     document.getElementById('officer-id-display').innerText = `Analyst ID: ${localStorage.getItem("username")}`;
-                    switchTab('home'); // Default Tab
+                    switchTab('home'); 
                     trackLocationSilently(); 
                     fetchOfficerHistory();
                     updateSilentStatusUI();
@@ -275,26 +328,22 @@
             } else { document.getElementById('auth-section').style.display = 'block'; }
         }
 
-        // TAB SWITCHING LOGIC (For Bottom Nav)
         function switchTab(tabName) {
-            // Hide all tabs
             document.getElementById('tab-home').classList.remove('active');
             document.getElementById('tab-history').classList.remove('active');
             document.getElementById('tab-profile').classList.remove('active');
             
-            // Remove active color from nav
             document.getElementById('nav-home').classList.remove('active');
             document.getElementById('nav-history').classList.remove('active');
             document.getElementById('nav-profile').classList.remove('active');
 
-            // Show selected
             document.getElementById('tab-' + tabName).classList.add('active');
             document.getElementById('nav-' + tabName).classList.add('active');
         }
 
         function openCameraFromNav() {
-            switchTab('home'); // Go to home tab
-            document.getElementById('test-image').click(); // Trigger native camera
+            switchTab('home'); 
+            document.getElementById('test-image').click(); 
         }
 
         function toggleAuth() {
@@ -513,9 +562,7 @@
         function openReport(recordId) {
             const record = allRecordsData.find(r => r.id === recordId);
             if (!record) return;
-
             let resultColor = record.result.includes("Positive") ? "#dc2626" : "#16a34a"; 
-
             const contentHtml = `
                 <div class="notebook-row"><span class="notebook-label">Sample ID:</span> <span class="notebook-value" style="color:#1e3a8a;">${record.sample_id}</span></div>
                 <div class="notebook-row"><span class="notebook-label">Location:</span> <span class="notebook-value">${record.location_name}</span></div>
@@ -524,7 +571,6 @@
                 <div class="notebook-row"><span class="notebook-label">Date & Time:</span> <span class="notebook-value">${new Date(record.timestamp).toLocaleString()}</span></div>
                 <div class="notebook-row" style="border-bottom:none;"><span class="notebook-label">Analyst:</span> <span class="notebook-value" style="font-style:italic;">${record.officer_id}</span></div>
             `;
-            
             document.getElementById('modal-content').innerHTML = contentHtml;
             document.getElementById('modal-hash').innerText = record.image_hash;
             document.getElementById('report-modal').style.display = 'flex';
@@ -553,4 +599,4 @@
         initApp();
     </script>
 </body>
-    </html>
+</html>
