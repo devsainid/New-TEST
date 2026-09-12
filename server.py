@@ -41,7 +41,7 @@ class User(Base):
     role = Column(String(20))
 
 class TestRecord(Base):
-    __tablename__ = "test_records_v2"
+    __tablename__ = "sih_records_final"  # <-- NAYA NAAM DAAL DIYA!
     id = Column(Integer, primary_key=True, index=True)
     officer_id = Column(String(50), index=True)
     sample_id = Column(String(50))
