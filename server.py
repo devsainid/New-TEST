@@ -39,23 +39,19 @@ class ImagePipeline:
 
 class MockClassifier:
     def classify(self, image_bytes: bytes, test_type: str) -> dict:
-        if "NIK" in test_type:
-            outcomes = [
-                {"result": "Positive - Suspected Opiates", "conf": "98.2%"},
-                {"result": "Positive - Suspected Cocaine", "conf": "96.5%"},
-                {"result": "Negative - No target substance", "conf": "99.1%"}
-            ]
-        elif "MMC" in test_type:
-            outcomes = [
-                {"result": "Positive - Suspected Methamphetamine", "conf": "97.8%"},
-                {"result": "Negative", "conf": "99.5%"}
-            ]
-        else:
-            outcomes = [{"result": "Inconclusive - Lab Test Required", "conf": "45.0%"}]
-            
-        selected = random.choices(outcomes, weights=[0.4, 0.4, 0.2] if len(outcomes)>2 else [0.5, 0.5])[0]
+        # NAYA SIH RULE COMPLIANT AI LOGIC
+        # Ab AI drug ka naam nahi lega, sirf color-card analysis categories dega
+        outcomes = [
+            {"result": "Positive (Presumptive)", "conf": "98.2%"},
+            {"result": "Negative", "conf": "99.1%"},
+            {"result": "Inconclusive", "conf": "45.0%"},
+            {"result": "Faint", "conf": "75.5%"},
+            {"result": "Unexpected", "conf": "60.2%"}
+        ]
+        
+        # Demo ke liye random result
+        selected = random.choices(outcomes, weights=[0.35, 0.35, 0.1, 0.1, 0.1])[0]
         return {"result": selected["result"], "confidence": selected["conf"]}
-
 # ==========================================
 # DB & ENV SETUP
 # ==========================================
