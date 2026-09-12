@@ -5,3 +5,5 @@ pymysql
 python-dotenv
 pyjwt
 python-multipart
+pillow
+google-generativeai
